@@ -1,0 +1,10 @@
+﻿node_modules/
+.next/
+.turbo/
+dist/
+coverage/
+*.log
+.DS_Store
+accessibility-checker/.env
+accessibility-checker/.env.local
+accessibility-checker/prisma/*.db
