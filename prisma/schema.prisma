@@ -1,0 +1,108 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  createdAt     DateTime @default(now())
+  deletedAt     DateTime?
+  scans         Scan[]
+  subscription  String   @default("free") // free, starter, pro
+  isAdmin       Boolean  @default(false)
+  role          String   @default("user") // user, admin, support, etc.
+  Billing       Billing[]
+  AuditLogs     AuditLog[]
+  Notifications Notification[]
+  Settings      UserSettings?
+  ScanHistories ScanHistory[]
+
+  @@index([createdAt])
+}
+
+model Scan {
+  id          String   @id @default(cuid())
+  url         String
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id])
+  createdAt   DateTime @default(now())
+  issuesFound Int
+  results     Json
+  status      String   // pending, completed, failed
+
+  ScanHistories ScanHistory[]
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model Billing {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+  plan          String   // free, starter, pro, enterprise
+  status        String   // active, cancelled, past_due
+  amount        Float
+  currency      String   @default("USD")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  expiresAt     DateTime?
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model AuditLog {
+  id            String   @id @default(cuid())
+  userId        String?
+  user          User?    @relation(fields: [userId], references: [id])
+  action        String
+  details       Json
+  createdAt     DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model Notification {
+  id            String   @id @default(cuid())
+  userId        String?
+  user          User?    @relation(fields: [userId], references: [id])
+  type          String   // scan_result, billing, admin, etc.
+  message       String
+  read          Boolean  @default(false)
+  seen          Boolean  @default(false)
+  createdAt     DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model UserSettings {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id])
+  emailPrefs    Boolean  @default(true)
+  accessibility Json
+  settings      Json?
+  createdAt     DateTime @default(now())
+}
+
+model ScanHistory {
+  id          String   @id @default(cuid())
+  scanId      String
+  scan        Scan     @relation(fields: [scanId], references: [id])
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id])
+  createdAt   DateTime @default(now())
+  results     Json
+  status      String
+
+  @@index([scanId])
+  @@index([userId])
+  @@index([createdAt])
+}
