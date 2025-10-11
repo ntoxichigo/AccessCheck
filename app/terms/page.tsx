@@ -1,262 +1,522 @@
-"use client";"use client";
+"use client";"use client";"use client";
 
-import PageLayout from "../../components/PageLayout";import PageLayout from "../../components/PageLayout";
+import PageLayout from "../../components/PageLayout";
+
+import { motion } from "framer-motion";import PageLayout from "../../components/PageLayout";import PageLayout from "../../components/PageLayout";
+
+import { AlertTriangle } from "lucide-react";
 
 import { motion } from "framer-motion";import { motion } from "framer-motion";
 
-import { AlertTriangle } from "lucide-react";import { typography } from "../../lib/design-system";
-
-import Link from "next/link";
-
 export default function TermsPage() {
 
-  return (export default function TermsOfServicePage() {
+  return (import { AlertTriangle } from "lucide-react";import { typography } from "../../lib/design-system";
 
-    <PageLayout theme="dark" containerSize="wide">  const sections = [
+    <PageLayout theme="dark" containerSize="wide">
 
-      <div className="max-w-4xl mx-auto">    {
+      <div className="max-w-4xl mx-auto">import Link from "next/link";
 
-        <motion.div      title: "1. Acceptance of Terms",
+        <motion.div
+
+          initial={{ opacity: 0, y: 20 }}export default function TermsPage() {
+
+          animate={{ opacity: 1, y: 0 }}
+
+          transition={{ duration: 0.5 }}  return (export default function TermsOfServicePage() {
+
+          className="mb-8"
+
+        >    <PageLayout theme="dark" containerSize="wide">  const sections = [
+
+          <h1 className="text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-600 mb-4">
+
+            Terms of Service      <div className="max-w-4xl mx-auto">    {
+
+          </h1>
+
+          <p className="text-gray-400 text-sm">Last Updated: October 2025</p>        <motion.div      title: "1. Acceptance of Terms",
+
+        </motion.div>
 
           initial={{ opacity: 0, y: 20 }}      content: [
 
-          animate={{ opacity: 1, y: 0 }}        "By accessing or using AccessCheck, you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our service."
+        {/* Critical Disclaimer */}
 
-          transition={{ duration: 0.5 }}      ]
+        <motion.div          animate={{ opacity: 1, y: 0 }}        "By accessing or using AccessCheck, you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our service."
 
-          className="mb-8"    },
+          className="mb-8 p-6 rounded-xl bg-yellow-900/20 border-2 border-yellow-600/50"
 
-        >    {
+          initial={{ opacity: 0, scale: 0.95 }}          transition={{ duration: 0.5 }}      ]
 
-          <h1 className="text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-600 mb-4">      title: "2. Description of Service",
+          animate={{ opacity: 1, scale: 1 }}
 
-            Terms of Service      content: [
+          transition={{ delay: 0.2, duration: 0.5 }}          className="mb-8"    },
 
-          </h1>        "AccessCheck provides automated web accessibility scanning services that:",
+        >
 
-          <p className="text-gray-400 text-sm">Last Updated: January 2025</p>        "• Analyze websites for WCAG 2.1 compliance",
+          <div className="flex gap-3">        >    {
 
-        </motion.div>        "• Generate detailed accessibility reports",
+            <AlertTriangle className="w-6 h-6 text-yellow-500 shrink-0 mt-1" />
 
-        "• Identify issues and provide remediation guidance",
+            <div>          <h1 className="text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-600 mb-4">      title: "2. Description of Service",
 
-        {/* Critical Disclaimer */}        "• Export results in JSON and CSV formats"
+              <h2 className="text-xl font-bold text-yellow-400 mb-3">IMPORTANT LEGAL NOTICE</h2>
 
-        <motion.div      ]
+              <div className="space-y-2 text-gray-200">            Terms of Service      content: [
 
-          className="mb-8 p-6 rounded-xl bg-yellow-900/20 border-2 border-yellow-600/50"    },
+                <p>By using AccessCheck, you explicitly acknowledge and agree that:</p>
 
-          initial={{ opacity: 0, scale: 0.95 }}    {
+                <ul className="list-disc list-inside space-y-1 ml-4">          </h1>        "AccessCheck provides automated web accessibility scanning services that:",
 
-          animate={{ opacity: 1, scale: 1 }}      title: "3. Account Registration",
+                  <li>This service is provided <strong>AS-IS</strong> with <strong>NO WARRANTIES</strong> of any kind</li>
 
-          transition={{ delay: 0.2, duration: 0.5 }}      content: [
+                  <li>You assume <strong>ALL RISK</strong> for use of this service</li>          <p className="text-gray-400 text-sm">Last Updated: January 2025</p>        "• Analyze websites for WCAG 2.1 compliance",
 
-        >        "To use AccessCheck, you must:",
+                  <li>We are <strong>NOT LIABLE</strong> for any compliance failures, legal issues, or damages</li>
 
-          <div className="flex gap-3">        "• Be at least 18 years of age",
+                  <li>This tool <strong>DOES NOT GUARANTEE</strong> legal compliance with any accessibility laws</li>        </motion.div>        "• Generate detailed accessibility reports",
 
-            <AlertTriangle className="w-6 h-6 text-yellow-500 shrink-0 mt-1" />        "• Provide accurate and complete registration information",
+                  <li>Manual review by qualified accessibility experts is <strong>REQUIRED</strong></li>
 
-            <div>        "• Maintain the security of your account credentials",
+                </ul>        "• Identify issues and provide remediation guidance",
 
-              <h2 className="text-xl font-bold text-yellow-400 mb-3">IMPORTANT LEGAL NOTICE</h2>        "• Notify us immediately of any unauthorized access",
+              </div>
 
-              <div className="space-y-2 text-gray-200">        "You are responsible for all activities under your account."
+            </div>        {/* Critical Disclaimer */}        "• Export results in JSON and CSV formats"
 
-                <p>By using AccessCheck, you explicitly acknowledge and agree that:</p>      ]
+          </div>
 
-                <ul className="list-disc list-inside space-y-1 ml-4">    },
+        </motion.div>        <motion.div      ]
 
-                  <li>This service is provided <strong>AS-IS</strong> with <strong>NO WARRANTIES</strong> of any kind</li>    {
 
-                  <li>You assume <strong>ALL RISK</strong> for use of this service</li>      title: "4. Subscription Plans and Billing",
 
-                  <li>We are <strong>NOT LIABLE</strong> for any compliance failures, legal issues, or damages</li>      content: [
+        <motion.div          className="mb-8 p-6 rounded-xl bg-yellow-900/20 border-2 border-yellow-600/50"    },
 
-                  <li>This tool <strong>DOES NOT GUARANTEE</strong> legal compliance with any accessibility laws</li>        "Free Plan:",
+          className="prose prose-invert prose-blue max-w-none"
 
-                  <li>Manual review by qualified accessibility experts is <strong>REQUIRED</strong></li>        "• 5 scans per month",
+          initial={{ opacity: 0 }}          initial={{ opacity: 0, scale: 0.95 }}    {
 
-                </ul>        "• Basic accessibility reports",
+          animate={{ opacity: 1 }}
 
-              </div>        "• Email support",
+          transition={{ delay: 0.4, duration: 0.5 }}          animate={{ opacity: 1, scale: 1 }}      title: "3. Account Registration",
 
-            </div>        "",
+        >
 
-          </div>        "Professional Plan ($29/month):",
+          <section className="mb-8">          transition={{ delay: 0.2, duration: 0.5 }}      content: [
 
-        </motion.div>        "• Unlimited scans",
+            <h2 className="text-2xl font-bold text-white mb-4">1. Acceptance of Terms</h2>
 
-        "• Detailed reports with remediation tips",
+            <p className="text-gray-300">        >        "To use AccessCheck, you must:",
 
-        <motion.div        "• Priority support",
+              By accessing or using AccessCheck (&quot;Service&quot;), you agree to be bound by these Terms of Service (&quot;Terms&quot;). 
 
-          className="prose prose-invert prose-blue max-w-none"        "• API access",
+              If you do not agree to these Terms, do not use the Service.          <div className="flex gap-3">        "• Be at least 18 years of age",
 
-          initial={{ opacity: 0 }}        "",
+            </p>
+
+          </section>            <AlertTriangle className="w-6 h-6 text-yellow-500 shrink-0 mt-1" />        "• Provide accurate and complete registration information",
+
+
+
+          <section className="mb-8">            <div>        "• Maintain the security of your account credentials",
+
+            <h2 className="text-2xl font-bold text-white mb-4">2. Service Description</h2>
+
+            <p className="text-gray-300 mb-3">              <h2 className="text-xl font-bold text-yellow-400 mb-3">IMPORTANT LEGAL NOTICE</h2>        "• Notify us immediately of any unauthorized access",
+
+              AccessCheck is an automated web accessibility scanning platform powered by the open-source{" "}
+
+              <a href="https://github.com/dequelabs/axe-core" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 underline">              <div className="space-y-2 text-gray-200">        "You are responsible for all activities under your account."
+
+                axe-core
+
+              </a> testing engine developed by Deque Systems.                <p>By using AccessCheck, you explicitly acknowledge and agree that:</p>      ]
+
+            </p>
+
+            <p className="text-gray-300 mb-3">                <ul className="list-disc list-inside space-y-1 ml-4">    },
+
+              <strong className="text-white">The Service:</strong>
+
+            </p>                  <li>This service is provided <strong>AS-IS</strong> with <strong>NO WARRANTIES</strong> of any kind</li>    {
+
+            <ul className="list-disc list-inside space-y-2 text-gray-300 ml-4">
+
+              <li>Performs automated accessibility scans of websites</li>                  <li>You assume <strong>ALL RISK</strong> for use of this service</li>      title: "4. Subscription Plans and Billing",
+
+              <li>Generates reports identifying potential accessibility issues</li>
+
+              <li>Provides recommendations for remediation</li>                  <li>We are <strong>NOT LIABLE</strong> for any compliance failures, legal issues, or damages</li>      content: [
+
+              <li>Offers historical tracking of scan results (Pro plan)</li>
+
+              <li>Allows export of reports in various formats (Pro plan)</li>                  <li>This tool <strong>DOES NOT GUARANTEE</strong> legal compliance with any accessibility laws</li>        "Free Plan:",
+
+            </ul>
+
+            <p className="text-gray-300 mt-3">                  <li>Manual review by qualified accessibility experts is <strong>REQUIRED</strong></li>        "• 5 scans per month",
+
+              <strong className="text-yellow-400">IMPORTANT:</strong> Automated tools can only detect approximately 30-50% of accessibility issues. 
+
+              Manual testing by qualified accessibility professionals is essential for comprehensive compliance.                </ul>        "• Basic accessibility reports",
+
+            </p>
+
+          </section>              </div>        "• Email support",
+
+
+
+          <section className="mb-8">            </div>        "",
+
+            <h2 className="text-2xl font-bold text-white mb-4">3. No Warranties - AS-IS Service</h2>
+
+            <p className="text-gray-300 mb-3">          </div>        "Professional Plan ($29/month):",
+
+              THE SERVICE IS PROVIDED &quot;AS-IS&quot; AND &quot;AS AVAILABLE&quot; WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO:
+
+            </p>        </motion.div>        "• Unlimited scans",
+
+            <ul className="list-disc list-inside space-y-2 text-gray-300 ml-4">
+
+              <li>NO WARRANTY of merchantability or fitness for a particular purpose</li>        "• Detailed reports with remediation tips",
+
+              <li>NO WARRANTY of accuracy, reliability, or completeness of results</li>
+
+              <li>NO WARRANTY of uninterrupted or error-free service</li>        <motion.div        "• Priority support",
+
+              <li>NO WARRANTY that the Service will detect all accessibility issues</li>
+
+              <li>NO WARRANTY of legal compliance with ADA, WCAG, Section 508, or any accessibility laws</li>          className="prose prose-invert prose-blue max-w-none"        "• API access",
+
+              <li>NO WARRANTY that using the Service will prevent legal claims or lawsuits</li>
+
+            </ul>          initial={{ opacity: 0 }}        "",
+
+          </section>
 
           animate={{ opacity: 1 }}        "Billing:",
 
-          transition={{ delay: 0.4, duration: 0.5 }}        "• Subscriptions auto-renew monthly",
+          <section className="mb-8">
 
-        >        "• Payment processed through Stripe",
+            <h2 className="text-2xl font-bold text-white mb-4">4. Limitation of Liability</h2>          transition={{ delay: 0.4, duration: 0.5 }}        "• Subscriptions auto-renew monthly",
 
-          <section className="mb-8">        "• Prices in USD, taxes may apply",
+            <p className="text-gray-300 mb-3">
 
-            <h2 className="text-2xl font-bold text-white mb-4">1. Acceptance of Terms</h2>        "• Refunds available within 14 days (see Refund Policy)"
+              TO THE MAXIMUM EXTENT PERMITTED BY LAW, ACCESSCHECK AND ITS OPERATORS SHALL NOT BE LIABLE FOR:        >        "• Payment processed through Stripe",
 
-            <p className="text-gray-300">      ]
+            </p>
 
-              By accessing or using AccessCheck (&quot;Service&quot;), you agree to be bound by these Terms of Service (&quot;Terms&quot;).     },
+            <ul className="list-disc list-inside space-y-2 text-gray-300 ml-4">          <section className="mb-8">        "• Prices in USD, taxes may apply",
 
-              If you do not agree to these Terms, do not use the Service.    {
+              <li>Any legal claims, lawsuits, or penalties related to accessibility compliance</li>
 
-            </p>      title: "5. Refund Policy",
+              <li>Damages resulting from reliance on scan results</li>            <h2 className="text-2xl font-bold text-white mb-4">1. Acceptance of Terms</h2>        "• Refunds available within 14 days (see Refund Policy)"
 
-          </section>      content: [
+              <li>Lost profits, revenue, data, or business opportunities</li>
 
-        "We offer a 14-day money-back guarantee:",
+              <li>Indirect, incidental, consequential, or punitive damages</li>            <p className="text-gray-300">      ]
+
+              <li>Failures to detect accessibility issues or false positives</li>
+
+              <li>Any claims exceeding the lesser of: (a) the total amount you paid to us in the 12 months immediately preceding the claim, or (b) £100 GBP</li>              By accessing or using AccessCheck (&quot;Service&quot;), you agree to be bound by these Terms of Service (&quot;Terms&quot;).     },
+
+            </ul>
+
+            <p className="text-gray-300 mt-3">              If you do not agree to these Terms, do not use the Service.    {
+
+              <strong className="text-white">Liability Cap Clarification:</strong> For free plan users who have paid £0, the maximum liability is capped at £100 GBP. 
+
+              For paid subscribers, liability is capped at whichever is <em>lesser</em>: your total subscription payments in the preceding 12 months, or £100 GBP.            </p>      title: "5. Refund Policy",
+
+            </p>
+
+            <p className="text-gray-300 mt-3">          </section>      content: [
+
+              You acknowledge that automated accessibility testing has inherent limitations and that you assume all risk associated with using the Service.
+
+            </p>        "We offer a 14-day money-back guarantee:",
+
+          </section>
 
           <section className="mb-8">        "• Available for new Professional subscriptions only",
 
-            <h2 className="text-2xl font-bold text-white mb-4">2. Service Description</h2>        "• Must request refund within 14 days of purchase",
+          <section className="mb-8">
 
-            <p className="text-gray-300 mb-3">        "• Contact support@accesscheck.com to process",
+            <h2 className="text-2xl font-bold text-white mb-4">5. User Responsibilities</h2>            <h2 className="text-2xl font-bold text-white mb-4">2. Service Description</h2>        "• Must request refund within 14 days of purchase",
 
-              AccessCheck is an automated web accessibility scanning platform powered by the open-source{" "}        "• Refunds processed within 5-10 business days",
+            <p className="text-gray-300 mb-3">You agree to:</p>
 
-              <a href="https://github.com/dequelabs/axe-core" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 underline">        "• Free plan users are not eligible for refunds",
+            <ul className="list-disc list-inside space-y-2 text-gray-300 ml-4">            <p className="text-gray-300 mb-3">        "• Contact support@accesscheck.com to process",
 
-                axe-core        "• Enterprise plans have custom refund terms"
+              <li>Use the Service only for lawful purposes</li>
 
-              </a> testing engine developed by Deque Systems.      ]
+              <li>Only scan websites you own or have explicit permission to scan</li>              AccessCheck is an automated web accessibility scanning platform powered by the open-source{" "}        "• Refunds processed within 5-10 business days",
 
-            </p>    },
+              <li>Not use the Service to scan malicious, illegal, or harmful websites</li>
 
-            <p className="text-gray-300 mb-3">    {
+              <li>Not attempt to reverse engineer, exploit, or abuse the Service</li>              <a href="https://github.com/dequelabs/axe-core" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 underline">        "• Free plan users are not eligible for refunds",
 
-              <strong className="text-white">The Service:</strong>      title: "6. Acceptable Use Policy",
+              <li>Verify all scan results with manual testing by qualified professionals</li>
 
-            </p>      content: [
+              <li>Not rely solely on automated scan results for legal compliance</li>                axe-core        "• Enterprise plans have custom refund terms"
 
-            <ul className="list-disc list-inside space-y-2 text-gray-300 ml-4">        "You agree NOT to:",
+              <li>Maintain the confidentiality of your account credentials</li>
 
-              <li>Performs automated accessibility scans of websites</li>        "• Scan websites without proper authorization",
+              <li>Comply with all applicable laws and regulations</li>              </a> testing engine developed by Deque Systems.      ]
 
-              <li>Generates reports identifying potential accessibility issues</li>        "• Use the service for illegal or malicious purposes",
+            </ul>
 
-              <li>Provides recommendations for remediation</li>        "• Attempt to bypass rate limits or security measures",
+          </section>            </p>    },
 
-              <li>Offers historical tracking of scan results (Pro plan)</li>        "• Reverse engineer or copy our technology",
 
-              <li>Allows export of reports in various formats (Pro plan)</li>        "• Share your account credentials with others",
 
-            </ul>        "• Use automated tools to create multiple accounts",
+          <section className="mb-8">            <p className="text-gray-300 mb-3">    {
 
-            <p className="text-gray-300 mt-3">        "• Resell or redistribute our service without permission",
+            <h2 className="text-2xl font-bold text-white mb-4">6. No Legal Advice or Certification</h2>
 
-              <strong className="text-yellow-400">IMPORTANT:</strong> Automated tools can only detect approximately 30-50% of accessibility issues.         "",
+            <p className="text-gray-300 mb-3">              <strong className="text-white">The Service:</strong>      title: "6. Acceptable Use Policy",
 
-              Manual testing by qualified accessibility professionals is essential for comprehensive compliance.        "Violation may result in account suspension or termination."
+              <strong className="text-white">AccessCheck does NOT provide:</strong>
 
-            </p>      ]
+            </p>            </p>      content: [
 
-          </section>    },
+            <ul className="list-disc list-inside space-y-2 text-gray-300 ml-4">
 
-    {
+              <li>Legal advice or legal opinions</li>            <ul className="list-disc list-inside space-y-2 text-gray-300 ml-4">        "You agree NOT to:",
 
-          <section className="mb-8">      title: "7. Service Availability",
+              <li>Compliance certification or attestation</li>
 
-            <h2 className="text-2xl font-bold text-white mb-4">3. No Warranties - AS-IS Service</h2>      content: [
+              <li>Guarantee of conformance to WCAG, ADA, Section 508, or any standards</li>              <li>Performs automated accessibility scans of websites</li>        "• Scan websites without proper authorization",
 
-            <p className="text-gray-300 mb-3">        "We strive for 99.9% uptime, but:",
+              <li>Professional accessibility consulting services</li>
 
-              THE SERVICE IS PROVIDED &quot;AS-IS&quot; AND &quot;AS AVAILABLE&quot; WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO:        "• Service may be temporarily unavailable for maintenance",
+            </ul>              <li>Generates reports identifying potential accessibility issues</li>        "• Use the service for illegal or malicious purposes",
 
-            </p>        "• We are not liable for downtime or data loss",
+            <p className="text-gray-300 mt-3">
 
-            <ul className="list-disc list-inside space-y-2 text-gray-300 ml-4">        "• Professional users receive priority support during outages",
+              You should consult with qualified legal and accessibility professionals for compliance guidance.              <li>Provides recommendations for remediation</li>        "• Attempt to bypass rate limits or security measures",
+
+            </p>
+
+          </section>              <li>Offers historical tracking of scan results (Pro plan)</li>        "• Reverse engineer or copy our technology",
+
+
+
+          <section className="mb-8">              <li>Allows export of reports in various formats (Pro plan)</li>        "• Share your account credentials with others",
+
+            <h2 className="text-2xl font-bold text-white mb-4">7. Subscription and Billing</h2>
+
+            <p className="text-gray-300 mb-3">            </ul>        "• Use automated tools to create multiple accounts",
+
+              <strong className="text-white">Free Plan:</strong> Limited scans with basic features.
+
+            </p>            <p className="text-gray-300 mt-3">        "• Resell or redistribute our service without permission",
+
+            <p className="text-gray-300 mb-3">
+
+              <strong className="text-white">Pro Plan:</strong> Subscription-based access to advanced features including unlimited scans, exports, and historical tracking.              <strong className="text-yellow-400">IMPORTANT:</strong> Automated tools can only detect approximately 30-50% of accessibility issues.         "",
+
+            </p>
+
+            <ul className="list-disc list-inside space-y-2 text-gray-300 ml-4">              Manual testing by qualified accessibility professionals is essential for comprehensive compliance.        "Violation may result in account suspension or termination."
+
+              <li>Subscriptions are billed monthly via Stripe</li>
+
+              <li>You may cancel your subscription at any time</li>            </p>      ]
+
+              <li>No refunds for partial months or unused scans</li>
+
+              <li>We may change pricing with 30 days notice to existing subscribers</li>          </section>    },
+
+            </ul>
+
+          </section>    {
+
+
+
+          <section className="mb-8">          <section className="mb-8">      title: "7. Service Availability",
+
+            <h2 className="text-2xl font-bold text-white mb-4">8. Intellectual Property</h2>
+
+            <p className="text-gray-300 mb-3">            <h2 className="text-2xl font-bold text-white mb-4">3. No Warranties - AS-IS Service</h2>      content: [
+
+              The Service uses <strong>axe-core</strong>, an open-source accessibility testing engine licensed under the{" "}
+
+              <a href="https://www.mozilla.org/en-US/MPL/2.0/" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 underline">            <p className="text-gray-300 mb-3">        "We strive for 99.9% uptime, but:",
+
+                Mozilla Public License 2.0
+
+              </a>. axe-core is © Deque Systems, Inc. All rights reserved.              THE SERVICE IS PROVIDED &quot;AS-IS&quot; AND &quot;AS AVAILABLE&quot; WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO:        "• Service may be temporarily unavailable for maintenance",
+
+            </p>
+
+            <p className="text-gray-300 mb-3">            </p>        "• We are not liable for downtime or data loss",
+
+              All other content, trademarks, and intellectual property in the Service remain the property of AccessCheck or their respective owners.
+
+            </p>            <ul className="list-disc list-inside space-y-2 text-gray-300 ml-4">        "• Professional users receive priority support during outages",
+
+          </section>
 
               <li>NO WARRANTY of merchantability or fitness for a particular purpose</li>        "• Status updates available at status.accesscheck.com"
 
-              <li>NO WARRANTY of accuracy, reliability, or completeness of results</li>      ]
+          <section className="mb-8">
 
-              <li>NO WARRANTY of uninterrupted or error-free service</li>    },
+            <h2 className="text-2xl font-bold text-white mb-4">9. Privacy and Data</h2>              <li>NO WARRANTY of accuracy, reliability, or completeness of results</li>      ]
 
-              <li>NO WARRANTY that the Service will detect all accessibility issues</li>    {
+            <p className="text-gray-300">
 
-              <li>NO WARRANTY of legal compliance with ADA, WCAG, Section 508, or any accessibility laws</li>      title: "8. Data Ownership and Usage",
+              Your use of the Service is also governed by our{" "}              <li>NO WARRANTY of uninterrupted or error-free service</li>    },
 
-              <li>NO WARRANTY that using the Service will prevent legal claims or lawsuits</li>      content: [
+              <a href="/privacy" className="text-blue-400 hover:text-blue-300 underline">Privacy Policy</a>, 
 
-            </ul>        "• You own all scan results and reports you generate",
+              which describes how we collect, use, and protect your data.              <li>NO WARRANTY that the Service will detect all accessibility issues</li>    {
 
-          </section>        "• We may use anonymized data to improve our service",
+            </p>
 
-        "• Scan results are retained for 90 days",
+          </section>              <li>NO WARRANTY of legal compliance with ADA, WCAG, Section 508, or any accessibility laws</li>      title: "8. Data Ownership and Usage",
 
-          <section className="mb-8">        "• You can export or delete your data anytime",
 
-            <h2 className="text-2xl font-bold text-white mb-4">4. Limitation of Liability</h2>        "• See our Privacy Policy for detailed data practices"
 
-            <p className="text-gray-300 mb-3">      ]
+          <section className="mb-8">              <li>NO WARRANTY that using the Service will prevent legal claims or lawsuits</li>      content: [
 
-              TO THE MAXIMUM EXTENT PERMITTED BY LAW, ACCESSCHECK AND ITS OPERATORS SHALL NOT BE LIABLE FOR:    },
+            <h2 className="text-2xl font-bold text-white mb-4">10. Indemnification</h2>
 
-            </p>    {
+            <p className="text-gray-300">            </ul>        "• You own all scan results and reports you generate",
 
-            <ul className="list-disc list-inside space-y-2 text-gray-300 ml-4">      title: "9. Intellectual Property",
+              You agree to indemnify and hold harmless AccessCheck, its operators, and affiliates from any claims, damages, losses, or expenses 
 
-              <li>Any legal claims, lawsuits, or penalties related to accessibility compliance</li>      content: [
+              (including legal fees) arising from:          </section>        "• We may use anonymized data to improve our service",
 
-              <li>Damages resulting from reliance on scan results</li>        "AccessCheck and all related technology are owned by us and protected by:",
+            </p>
 
-              <li>Lost profits, revenue, data, or business opportunities</li>        "• Copyright laws",
+            <ul className="list-disc list-inside space-y-2 text-gray-300 ml-4 mt-2">        "• Scan results are retained for 90 days",
+
+              <li>Your use or misuse of the Service</li>
+
+              <li>Your violation of these Terms</li>          <section className="mb-8">        "• You can export or delete your data anytime",
+
+              <li>Your violation of any laws or third-party rights</li>
+
+              <li>Any accessibility compliance claims related to your website</li>            <h2 className="text-2xl font-bold text-white mb-4">4. Limitation of Liability</h2>        "• See our Privacy Policy for detailed data practices"
+
+            </ul>
+
+          </section>            <p className="text-gray-300 mb-3">      ]
+
+
+
+          <section className="mb-8">              TO THE MAXIMUM EXTENT PERMITTED BY LAW, ACCESSCHECK AND ITS OPERATORS SHALL NOT BE LIABLE FOR:    },
+
+            <h2 className="text-2xl font-bold text-white mb-4">11. Termination</h2>
+
+            <p className="text-gray-300">            </p>    {
+
+              We reserve the right to suspend or terminate your access to the Service at any time, for any reason, including:
+
+            </p>            <ul className="list-disc list-inside space-y-2 text-gray-300 ml-4">      title: "9. Intellectual Property",
+
+            <ul className="list-disc list-inside space-y-2 text-gray-300 ml-4 mt-2">
+
+              <li>Violation of these Terms</li>              <li>Any legal claims, lawsuits, or penalties related to accessibility compliance</li>      content: [
+
+              <li>Fraudulent or abusive activity</li>
+
+              <li>Non-payment of subscription fees</li>              <li>Damages resulting from reliance on scan results</li>        "AccessCheck and all related technology are owned by us and protected by:",
+
+              <li>At our sole discretion without cause</li>
+
+            </ul>              <li>Lost profits, revenue, data, or business opportunities</li>        "• Copyright laws",
+
+          </section>
 
               <li>Indirect, incidental, consequential, or punitive damages</li>        "• Trademark laws",
 
-              <li>Failures to detect accessibility issues or false positives</li>        "• Trade secret laws",
+          <section className="mb-8">
 
-              <li>Any claims exceeding the amount paid by you in the last 12 months (or $100 if greater)</li>        "",
+            <h2 className="text-2xl font-bold text-white mb-4">12. Changes to Terms</h2>              <li>Failures to detect accessibility issues or false positives</li>        "• Trade secret laws",
 
-            </ul>        "You may not copy, modify, or distribute our software without permission."
+            <p className="text-gray-300">
+
+              We may modify these Terms at any time. Continued use of the Service after changes constitutes acceptance of the modified Terms.               <li>Any claims exceeding the amount paid by you in the last 12 months (or $100 if greater)</li>        "",
+
+              Material changes will be communicated via email or prominent notice in the Service.
+
+            </p>            </ul>        "You may not copy, modify, or distribute our software without permission."
+
+          </section>
 
             <p className="text-gray-300 mt-3">      ]
 
-              You acknowledge that automated accessibility testing has inherent limitations and that you assume all risk associated with using the Service.    },
+          <section className="mb-8">
 
-            </p>    {
+            <h2 className="text-2xl font-bold text-white mb-4">13. Governing Law</h2>              You acknowledge that automated accessibility testing has inherent limitations and that you assume all risk associated with using the Service.    },
 
-          </section>      title: "10. Limitation of Liability",
+            <p className="text-gray-300">
 
-      content: [
+              These Terms are governed by the laws of the United Kingdom. Any disputes shall be resolved in the courts of England and Wales.            </p>    {
 
-          <section className="mb-8">        "TO THE MAXIMUM EXTENT PERMITTED BY LAW:",
+            </p>
 
-            <h2 className="text-2xl font-bold text-white mb-4">5. User Responsibilities</h2>        "",
+          </section>          </section>      title: "10. Limitation of Liability",
 
-            <p className="text-gray-300 mb-3">You agree to:</p>        "• AccessCheck is provided \"AS IS\" without warranties",
 
-            <ul className="list-disc list-inside space-y-2 text-gray-300 ml-4">        "• We are not liable for indirect, incidental, or consequential damages",
 
-              <li>Use the Service only for lawful purposes</li>        "• Our total liability is limited to the amount you paid in the last 12 months",
+          <section className="mb-8">      content: [
 
-              <li>Only scan websites you own or have explicit permission to scan</li>        "• We do not guarantee scan accuracy or WCAG compliance certification",
+            <h2 className="text-2xl font-bold text-white mb-4">14. Contact</h2>
 
-              <li>Not use the Service to scan malicious, illegal, or harmful websites</li>        "• You are responsible for implementing accessibility fixes",
+            <p className="text-gray-300">          <section className="mb-8">        "TO THE MAXIMUM EXTENT PERMITTED BY LAW:",
 
-              <li>Not attempt to reverse engineer, exploit, or abuse the Service</li>        "",
+              For questions about these Terms, contact us at:{" "}
 
-              <li>Verify all scan results with manual testing by qualified professionals</li>        "Our scans provide guidance, not legal compliance certification."
+              <a href="/contact" className="text-blue-400 hover:text-blue-300 underline">            <h2 className="text-2xl font-bold text-white mb-4">5. User Responsibilities</h2>        "",
 
-              <li>Not rely solely on automated scan results for legal compliance</li>      ]
+                Contact Page
 
-              <li>Maintain the confidentiality of your account credentials</li>    },
+              </a>            <p className="text-gray-300 mb-3">You agree to:</p>        "• AccessCheck is provided \"AS IS\" without warranties",
 
-              <li>Comply with all applicable laws and regulations</li>    {
+            </p>
 
-            </ul>      title: "11. Indemnification",
+          </section>            <ul className="list-disc list-inside space-y-2 text-gray-300 ml-4">        "• We are not liable for indirect, incidental, or consequential damages",
+
+
+
+          <section className="mb-8 p-6 rounded-xl bg-red-900/20 border-2 border-red-600/50">              <li>Use the Service only for lawful purposes</li>        "• Our total liability is limited to the amount you paid in the last 12 months",
+
+            <h2 className="text-2xl font-bold text-red-400 mb-4">FINAL ACKNOWLEDGMENT</h2>
+
+            <p className="text-gray-200 font-semibold">              <li>Only scan websites you own or have explicit permission to scan</li>        "• We do not guarantee scan accuracy or WCAG compliance certification",
+
+              By using AccessCheck, you explicitly acknowledge that:
+
+            </p>              <li>Not use the Service to scan malicious, illegal, or harmful websites</li>        "• You are responsible for implementing accessibility fixes",
+
+            <ul className="list-disc list-inside space-y-2 text-gray-200 mt-3 ml-4">
+
+              <li>You have read and understood these Terms</li>              <li>Not attempt to reverse engineer, exploit, or abuse the Service</li>        "",
+
+              <li>You accept all risks associated with using an automated accessibility scanner</li>
+
+              <li>You will not hold AccessCheck liable for any compliance failures or legal issues</li>              <li>Verify all scan results with manual testing by qualified professionals</li>        "Our scans provide guidance, not legal compliance certification."
+
+              <li>You understand this Service does NOT guarantee legal compliance</li>
+
+              <li>You will conduct manual testing and consult qualified professionals</li>              <li>Not rely solely on automated scan results for legal compliance</li>      ]
+
+            </ul>
+
+          </section>              <li>Maintain the confidentiality of your account credentials</li>    },
+
+        </motion.div>
+
+      </div>              <li>Comply with all applicable laws and regulations</li>    {
+
+    </PageLayout>
+
+  );            </ul>      title: "11. Indemnification",
+
+}
 
           </section>      content: [
 
