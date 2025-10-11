@@ -6,6 +6,7 @@ import ComplianceRisk from "../../../components/ComplianceRisk";
 import { ResultsDisplay } from "../../../components/ResultsDisplay";
 import NavBar from "../../../components/NavBar";
 import { useSubscription } from "../../../lib/hooks/useQueries";
+import { DisclaimerBanner } from "../../../components/legal/DisclaimerBanner";
 
 interface ScanData {
   id: string;
@@ -99,6 +100,11 @@ export default function ScanReportPage({ params }: { params: Promise<{ id: strin
       <NavBar />
       <main className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 text-white">
         <div className="max-w-6xl mx-auto px-6 py-12">
+          {/* Legal Disclaimer */}
+          <div className="mb-6">
+            <DisclaimerBanner variant="compact" />
+          </div>
+
           <motion.div
             className="mb-8 flex items-center gap-4 p-6 rounded-2xl bg-white/10 backdrop-blur-lg border border-white/10"
             initial={{ opacity: 0, y: -20 }}

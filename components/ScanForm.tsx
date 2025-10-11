@@ -1,5 +1,6 @@
 'use client';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { ScanAgreementCheckbox } from './legal/ScanAgreementCheckbox';
 
 interface ScanFormProps {
   onScanComplete: (results: Record<string, unknown>) => void;
@@ -16,6 +17,7 @@ export default function ScanForm({ onScanComplete, onLoadingChange, inputRef }: 
   const [visible, setVisible] = useState(false);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [focused, setFocused] = useState(false);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -53,6 +55,12 @@ export default function ScanForm({ onScanComplete, onLoadingChange, inputRef }: 
 
   const handleScan = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Check agreement first
+    if (!agreedToTerms) {
+      setError('Please agree to the disclaimer before scanning');
+      return;
+    }
     
     // URL validation with better UX
     if (!url) {
@@ -332,9 +340,9 @@ export default function ScanForm({ onScanComplete, onLoadingChange, inputRef }: 
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || !agreedToTerms}
               className={`scan-button-glow relative px-8 py-4 rounded-xl font-bold text-white transition-all duration-300 ${
-                loading
+                loading || !agreedToTerms
                   ? 'bg-gray-400 cursor-not-allowed'
                   : 'bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:shadow-2xl hover:-translate-y-1 hover:scale-105 gradient-animated'
               }`}
@@ -379,6 +387,12 @@ export default function ScanForm({ onScanComplete, onLoadingChange, inputRef }: 
               </span>
             </button>
           </div>
+
+          {/* Legal Agreement Checkbox */}
+          <ScanAgreementCheckbox 
+            onAgreementChange={setAgreedToTerms}
+            required={true}
+          />
 
           {/* Error messages with enhanced styling */}
           {error && (

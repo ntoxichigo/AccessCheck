@@ -89,6 +89,48 @@ export default function AboutPage() {
           a tool that empowers developers and teams to build inclusive web experiences without the complexity.
         </p>
       </motion.div>
+
+      {/* axe-core Attribution */}
+      <motion.div 
+        className="mt-16 p-8 rounded-2xl bg-gradient-to-br from-blue-900/20 to-purple-900/20 border border-blue-500/30"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.8, duration: 0.6 }}
+      >
+        <h3 className="text-2xl font-bold mb-4">Powered by axe-core</h3>
+        <p className="text-gray-300 mb-4 leading-relaxed">
+          AccessCheck uses{' '}
+          <a 
+            href="https://github.com/dequelabs/axe-core" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-blue-400 hover:text-blue-300 font-semibold underline"
+          >
+            axe-core
+          </a>
+          , the world&apos;s leading open-source accessibility testing engine developed by{' '}
+          <a 
+            href="https://www.deque.com/" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-blue-400 hover:text-blue-300 font-semibold underline"
+          >
+            Deque Systems, Inc.
+          </a>
+        </p>
+        <p className="text-sm text-gray-400">
+          axe-core is licensed under the{' '}
+          <a 
+            href="https://www.mozilla.org/en-US/MPL/2.0/" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-blue-400 hover:text-blue-300 underline"
+          >
+            Mozilla Public License 2.0 (MPL 2.0)
+          </a>
+          . We extend our gratitude to Deque Systems for making this powerful technology available to the community.
+        </p>
+      </motion.div>
     </PageLayout>
   );
 }

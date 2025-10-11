@@ -2,6 +2,7 @@
 import PageLayout from "../../components/PageLayout";
 import { motion } from "framer-motion";
 import { useEffect } from "react";
+import { DisclaimerBanner } from "../../components/legal/DisclaimerBanner";
 
 export default function PricingPage() {
   useEffect(() => {
@@ -28,12 +29,48 @@ export default function PricingPage() {
         className="text-center mb-12"
       >
         <h1 className="text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-600 mb-6">
-          Simple, Transparent Pricing
+          Professional Accessibility Platform
         </h1>
         <p className="text-lg text-gray-300 max-w-2xl mx-auto">
-          Choose the plan that fits your needs. Upgrade or downgrade anytime.
+          Comprehensive accessibility audit platform powered by industry-leading open-source technology
         </p>
       </motion.div>
+
+      {/* Value Proposition */}
+      <motion.div
+        className="mb-12 p-8 rounded-2xl bg-gradient-to-br from-blue-900/20 to-purple-900/20 border border-blue-500/30"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2, duration: 0.5 }}
+      >
+        <h2 className="text-2xl font-bold mb-6 text-center">What You Get with AccessCheck</h2>
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[
+            { icon: '🚀', title: 'Unlimited Scans', desc: 'Scan as many sites as you need, whenever you need' },
+            { icon: '📊', title: 'Professional Reports', desc: 'Branded PDF reports for clients and stakeholders' },
+            { icon: '📈', title: 'Historical Tracking', desc: 'Monitor compliance progress over time' },
+            { icon: '👥', title: 'Team Collaboration', desc: 'Work together with your team on remediation' },
+            { icon: '⚡', title: 'Priority Support', desc: 'Get expert help when you need it' },
+            { icon: '🔧', title: 'Advanced Features', desc: 'API access, webhooks, and custom integrations' }
+          ].map((item, i) => (
+            <div key={i} className="flex gap-3">
+              <div className="text-2xl">{item.icon}</div>
+              <div>
+                <h3 className="font-semibold text-white mb-1">{item.title}</h3>
+                <p className="text-sm text-gray-400">{item.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+        <p className="text-center mt-6 text-sm text-gray-400">
+          * Powered by <a href="https://github.com/dequelabs/axe-core" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 underline">axe-core</a> open-source testing engine
+        </p>
+      </motion.div>
+
+      {/* Legal Disclaimer */}
+      <div className="mb-8">
+        <DisclaimerBanner variant="compact" />
+      </div>
 
       {/* Stripe Pricing Table Embed */}
       <motion.div 

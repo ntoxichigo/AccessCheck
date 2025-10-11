@@ -3,6 +3,8 @@
 import React, { useEffect, useMemo, useState, useRef, useCallback } from 'react';
 import { useAuth, SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
 import Link from 'next/link';
+import { DisclaimerBanner } from '../components/legal/DisclaimerBanner';
+import { LegalFooter } from '../components/legal/LegalFooter';
 
 // Optimized intersection observer hook
 const useInView = (options: IntersectionObserverInit = {}) => {
@@ -462,6 +464,11 @@ export default function Home() {
             </div>
           </div>
         </div>
+
+        {/* Disclaimer Banner */}
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 mt-12">
+          <DisclaimerBanner variant="full" />
+        </div>
       </section>
 
       {/* FEATURES */}
@@ -888,70 +895,7 @@ export default function Home() {
       </section>
 
       {/* FOOTER */}
-      <footer className="bg-gradient-to-b from-gray-900 to-black text-gray-400">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-16">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
-            <div className="md:col-span-2">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="relative">
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl blur opacity-50" />
-                  <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-white font-bold">
-                    AC
-                  </div>
-                </div>
-                <div>
-                  <div className="font-bold text-xl bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                    AccessCheck
-                  </div>
-                  <div className="text-xs uppercase tracking-wider text-gray-500">WCAG Compliance</div>
-                </div>
-              </div>
-              <p className="text-sm leading-relaxed max-w-md mb-6 text-gray-500">
-                Making the web accessible for everyone. Automated WCAG scanning, detailed reports, and actionable insights to help you build inclusive digital experiences.
-              </p>
-              <div className="flex gap-3">
-                {['Twitter', 'LinkedIn', 'GitHub'].map((social, i) => (
-                  <a
-                    key={i}
-                    href="#"
-                    className="w-10 h-10 rounded-lg bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 flex items-center justify-center hover:bg-gradient-to-br hover:from-blue-600/20 hover:to-purple-600/20 hover:border-purple-500/50 transition-all duration-300"
-                    aria-label={social}
-                  >
-                    <span className="text-xs">🔗</span>
-                  </a>
-                ))}
-              </div>
-            </div>
-
-            {[
-              { title: 'Product', links: ['Features', 'Pricing', 'API Docs', 'Integrations', 'Roadmap'] },
-              { title: 'Company', links: ['About', 'Blog', 'Careers', 'Contact', 'Press'] }
-            ].map((col, i) => (
-              <div key={i}>
-                <h4 className="font-bold text-white mb-4 uppercase text-xs tracking-wider">{col.title}</h4>
-                <ul className="space-y-3">
-                  {col.links.map((link, j) => (
-                    <li key={j}>
-                      <a href="#" className="text-sm text-gray-500 hover:text-white hover:translate-x-1 inline-block transition-all duration-300">
-                        {link}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-
-          <div className="border-t border-gray-800/50 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-sm text-gray-500">© {new Date().getFullYear()} AccessCheck. All rights reserved.</p>
-            <div className="flex gap-6 text-sm">
-              <a href="#" className="text-gray-500 hover:text-white transition-colors">Privacy</a>
-              <a href="#" className="text-gray-500 hover:text-white transition-colors">Terms</a>
-              <a href="#" className="text-gray-500 hover:text-white transition-colors">Cookies</a>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <LegalFooter />
     </main>
   );
 }

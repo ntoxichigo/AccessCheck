@@ -11,6 +11,7 @@ import ScanHistory from "../../components/ScanHistory";
 import NavBar from "../../components/NavBar";
 import { SignedIn, SignedOut, RedirectToSignIn, UserButton, useUser } from "@clerk/nextjs";
 import Link from "next/link";
+import { DisclaimerBanner } from "../../components/legal/DisclaimerBanner";
 
 export default function DashboardPage() {
   const [results, setResults] = useState<Record<string, unknown> | null>(null);
@@ -78,6 +79,11 @@ export default function DashboardPage() {
               </motion.div>
             )}
           </SignedIn>
+
+          {/* Legal Disclaimer */}
+          <div className="mb-6">
+            <DisclaimerBanner variant="compact" />
+          </div>
 
           {/* Header */}
           <motion.div 
