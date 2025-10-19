@@ -39,7 +39,7 @@ export default function ProfileForm() {
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay: 0.1 }}
       >
-        <label htmlFor="firstName" className="block text-sm font-medium text-gray-300 mb-1">
+        <label htmlFor="firstName" className="block text-sm font-medium text-gray-800 mb-1">
           First Name
         </label>
         <input
@@ -47,7 +47,7 @@ export default function ProfileForm() {
           id="firstName"
           name="firstName"
           defaultValue={user?.firstName || ''}
-          className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg focus:ring-2 focus:ring-blue-500 text-white transition-all duration-200 hover:bg-white/15"
+          className="w-full px-4 py-2 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900 transition-all duration-200"
           placeholder="Enter your first name"
         />
       </motion.div>
@@ -57,7 +57,7 @@ export default function ProfileForm() {
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay: 0.2 }}
       >
-        <label htmlFor="lastName" className="block text-sm font-medium text-gray-300 mb-1">
+        <label htmlFor="lastName" className="block text-sm font-medium text-gray-800 mb-1">
           Last Name
         </label>
         <input
@@ -65,7 +65,7 @@ export default function ProfileForm() {
           id="lastName"
           name="lastName"
           defaultValue={user?.lastName || ''}
-          className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg focus:ring-2 focus:ring-blue-500 text-white transition-all duration-200 hover:bg-white/15"
+          className="w-full px-4 py-2 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900 transition-all duration-200"
           placeholder="Enter your last name"
         />
       </motion.div>
@@ -75,10 +75,10 @@ export default function ProfileForm() {
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay: 0.3 }}
       >
-        <label className="block text-sm font-medium text-gray-300 mb-1">
+        <label className="block text-sm font-medium text-gray-800 mb-1">
           Email
         </label>
-        <div className="text-gray-400 px-4 py-2 bg-white/5 border border-white/10 rounded-lg">
+        <div className="text-gray-800 px-4 py-2 bg-white border border-gray-200 rounded-lg">
           {user?.primaryEmailAddress?.emailAddress}
         </div>
       </motion.div>
@@ -89,7 +89,7 @@ export default function ProfileForm() {
             initial={{ opacity: 0, y: -10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
-            className={`p-3 rounded-lg ${message.includes('successfully') ? 'bg-green-500/20 text-green-200' : 'bg-red-500/20 text-red-200'}`}
+            className={`p-3 rounded-lg ${message.includes('successfully') ? 'bg-green-500/20 text-green-800' : 'bg-red-500/20 text-red-800'}`}
           >
             {message.includes('successfully') ? '✅ ' : '❌ '}{message}
           </motion.div>

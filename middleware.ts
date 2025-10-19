@@ -24,11 +24,7 @@ export default clerkMiddleware((auth, req) => {
 
 export const config = {
   matcher: [
-    '/((?!.+\\.[\\w]+$|_next).*)',
-    '/',
-    '/dashboard(.*)',
-    '/api/scan',
-    '/api/scans/history',
-    '/api/(.*)'
+    // Skip Next.js internals and static files
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 };

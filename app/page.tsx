@@ -1,10 +1,11 @@
 'use client';
 
 import React, { useEffect, useMemo, useState, useRef, useCallback } from 'react';
-import { useAuth, SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
+import { useAuth } from '@clerk/nextjs';
 import Link from 'next/link';
-import { DisclaimerBanner } from '../components/legal/DisclaimerBanner';
+import NavBar from '../components/NavBar';
 import { LegalFooter } from '../components/legal/LegalFooter';
+import { ScanSearch, FileText, Zap, Shield } from 'lucide-react';
 
 // Optimized intersection observer hook
 const useInView = (options: IntersectionObserverInit = {}) => {
@@ -63,7 +64,6 @@ const AnimatedCounter = ({ end, duration = 2000, prefix = '', suffix = '' }: { e
 
 export default function Home() {
   const { isSignedIn } = useAuth();
-  const [activeSection, setActiveSection] = useState('home');
   const [mounted, setMounted] = useState(false);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const heroRef = useRef<HTMLElement>(null);
@@ -95,27 +95,6 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    let ticking = false;
-    const handleScroll = () => {
-      if (!ticking) {
-        requestAnimationFrame(() => {
-          const sections = ['home', 'features', 'pricing', 'success', 'faq'];
-          const current = sections.find(section => {
-            const element = document.getElementById(section);
-            if (element) {
-              const rect = element.getBoundingClientRect();
-              return rect.top <= 100 && rect.bottom >= 100;
-            }
-            return false;
-          });
-          if (current) setActiveSection(current);
-          
-          ticking = false;
-        });
-        ticking = true;
-      }
-    };
-
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -128,28 +107,16 @@ export default function Home() {
     );
 
     document.querySelectorAll('[data-animate]').forEach((el) => observer.observe(el));
-    window.addEventListener('scroll', handleScroll, { passive: true });
 
     return () => {
-      window.removeEventListener('scroll', handleScroll);
       observer.disconnect();
     };
   }, []);
 
-  const scrollToSection = (id: string) => {
-    const element = document.getElementById(id);
-    if (element) {
-      const offset = 80;
-      const elementPosition = element.getBoundingClientRect().top + window.scrollY;
-      window.scrollTo({
-        top: elementPosition - offset,
-        behavior: 'smooth'
-      });
-    }
-  };
-
   return (
-    <main className="relative min-h-screen bg-gradient-to-b from-gray-50 to-white text-gray-900 overflow-hidden">
+    <>
+      <NavBar />
+      <main className="relative min-h-screen bg-gradient-to-b from-gray-50 to-white text-gray-900">
       {/* Enhanced animated background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div 
@@ -258,68 +225,6 @@ export default function Home() {
         }
       `}</style>
 
-      {/* HEADER */}
-      <header className="sticky top-0 z-50 backdrop-blur-xl bg-white/70 border-b border-gray-200/50">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-4">
-          <nav className="flex flex-wrap items-center justify-between gap-y-4">
-            <div
-              className="flex items-center gap-3 cursor-pointer group"
-              onClick={() => scrollToSection('home')}
-            >
-              <div className="relative w-10 h-10">
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl blur-lg opacity-50 group-hover:opacity-75 transition-opacity" />
-                <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-white font-bold shadow-lg">
-                  AC
-                </div>
-              </div>
-              <div>
-                <div className="font-bold text-xl bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                  AccessCheck
-                </div>
-                <div className="text-[10px] text-gray-500 font-medium tracking-widest uppercase">
-                  WCAG Compliance
-                </div>
-              </div>
-            </div>
-
-            <div className="hidden md:flex items-center gap-8">
-              {['features', 'pricing', 'success', 'faq'].map((item) => (
-                <button
-                  key={item}
-                  onClick={() => scrollToSection(item)}
-                  className={`text-sm font-semibold capitalize transition-all relative ${
-                    activeSection === item ? 'text-blue-600' : 'text-gray-700 hover:text-blue-600'
-                  }`}
-                >
-                  {item}
-                  {activeSection === item && (
-                    <div className="absolute -bottom-1 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-600 to-purple-600" />
-                  )}
-                </button>
-              ))}
-            </div>
-
-            <div className="flex items-center gap-3">
-              <SignedOut>
-                <Link href="/sign-in" className="hidden md:block px-5 py-2 text-sm font-semibold text-gray-700 hover:text-blue-600 transition-colors">
-                  Sign In
-                </Link>
-              </SignedOut>
-              <SignedIn>
-                <Link href="/settings" className="hidden md:block px-5 py-2 text-sm font-semibold text-gray-700 hover:text-blue-600 transition-colors">
-                  Settings
-                </Link>
-                <UserButton afterSignOutUrl="/" />
-              </SignedIn>
-              <button className="relative overflow-hidden px-6 py-2.5 rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold text-sm hover:shadow-xl transition-all group">
-                <span className="relative z-10">Start Free Scan</span>
-                <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-blue-600 opacity-0 group-hover:opacity-100 transition-opacity" />
-              </button>
-            </div>
-          </nav>
-        </div>
-      </header>
-
       {/* HERO SECTION */}
       <section 
         id="home" 
@@ -349,7 +254,7 @@ export default function Home() {
                   </span>
                 </h1>
 
-                <p className="text-base sm:text-lg md:text-xl text-gray-600 leading-relaxed max-w-xl" data-animate>
+                <p className="text-base sm:text-lg md:text-xl text-gray-800 leading-relaxed max-w-xl" data-animate>
                   Scan your website in{' '}
                   <span className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
                     60 seconds
@@ -392,7 +297,7 @@ export default function Home() {
                         duration={2000 + i * 500}
                       />
                     </div>
-                    <div className="text-sm text-gray-600 font-medium mt-1">{stat.label}</div>
+                    <div className="text-sm text-gray-800 font-medium mt-1">{stat.label}</div>
                   </div>
                 ))}
               </div>
@@ -416,7 +321,7 @@ export default function Home() {
                       </div>
                       <div>
                         <div className="font-bold text-gray-900">Scan Complete</div>
-                        <div className="text-sm text-gray-500">yoursite.com</div>
+                        <div className="text-sm text-gray-700">yoursite.com</div>
                       </div>
                     </div>
                     <div className="px-4 py-2 rounded-lg bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200">
@@ -465,10 +370,6 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Disclaimer Banner */}
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 mt-12">
-          <DisclaimerBanner variant="full" />
-        </div>
       </section>
 
       {/* FEATURES */}
@@ -486,7 +387,7 @@ export default function Home() {
                 WCAG Compliance
               </span>
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto" data-animate>
+            <p className="text-xl text-gray-800 max-w-3xl mx-auto" data-animate>
               From initial scan to full remediation, our platform guides you every step of the way.
             </p>
           </div>
@@ -543,7 +444,7 @@ export default function Home() {
                   <h3 className="text-xl font-bold mb-3 bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
                     {feature.title}
                   </h3>
-                  <p className="text-gray-600 leading-relaxed">{feature.desc}</p>
+                  <p className="text-gray-800 leading-relaxed">{feature.desc}</p>
                   <div className={`mt-6 h-1 w-0 bg-gradient-to-r ${feature.gradient} group-hover:w-full transition-all duration-700 rounded-full`} />
                 </div>
               </div>
@@ -589,15 +490,15 @@ export default function Home() {
                 name: 'Pro',
                 price: '$19',
                 period: 'per month',
-                features: ['10 scans/day', 'Full reports', 'Priority support', 'PDF exports'],
-                cta: 'Start Trial',
+                features: ['10 scans/day', 'Full accessibility reports', 'Priority support', 'PDF exports'],
+                cta: 'Upgrade Now',
                 popular: true
               },
               {
-                name: 'Business',
-                price: '$59',
-                period: 'per month',
-                features: ['Unlimited scans', 'API access', 'Team dashboard', 'Dedicated support'],
+                name: 'Enterprise',
+                price: 'Custom',
+                period: '',
+                features: ['Everything in Professional', 'Custom integrations', 'Dedicated account manager', 'SLA guarantees', 'Custom reporting'],
                 cta: 'Contact Sales',
                 popular: false
               }
@@ -608,12 +509,6 @@ export default function Home() {
                 data-animate="scale"
                 style={{ animationDelay: `${i * 100}ms` }}
               >
-                {plan.popular && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-gradient-to-r from-yellow-400 to-orange-400 text-gray-900 text-xs font-bold shadow-lg whitespace-nowrap">
-                    ⭐ MOST POPULAR
-                  </div>
-                )}
-
                 <div className={`relative overflow-hidden rounded-2xl p-8 h-full transition-all duration-500 ${
                   plan.popular
                     ? 'bg-white/20 backdrop-blur-xl border-2 border-white/40 hover:shadow-2xl hover:shadow-white/20'
@@ -621,10 +516,18 @@ export default function Home() {
                 } hover-lift`}>
                   
                   {plan.popular && (
-                    <div className="absolute inset-0 shimmer-bg opacity-30" />
+                    <>
+                      <div className="absolute inset-0 shimmer-bg opacity-30" />
+                      <div className="absolute top-0 left-0 right-0 -mt-1 flex justify-center">
+                        <div className="px-4 py-1.5 rounded-b-lg bg-gradient-to-r from-yellow-400 to-orange-400 text-gray-900 text-xs font-bold shadow-lg whitespace-nowrap">
+                          ⭐ MOST POPULAR
+                        </div>
+                      </div>
+                    </>
                   )}
 
                   <div className="relative">
+                    {plan.popular && <div className="h-4" />} {/* Spacer for badge */}
                     <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
                     <div className="mb-6">
                       <span className="text-5xl font-black">{plan.price}</span>
@@ -649,7 +552,7 @@ export default function Home() {
                       </Link>
                     ) : plan.name === 'Pro' ? (
                       <Link
-                        href="/sign-up"
+                        href={isSignedIn ? "/pricing" : "/sign-up"}
                         className={`w-full block py-3 rounded-lg font-bold transition-all duration-300 transform hover:scale-105 bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 text-white hover:shadow-xl text-center`}
                       >
                         {plan.cta}
@@ -670,77 +573,118 @@ export default function Home() {
         </div>
       </section>
 
-      {/* SUCCESS STORIES */}
-      <section id="success" className="py-16 sm:py-20 md:py-24 bg-gradient-to-b from-white to-gray-50">
+      {/* TRUSTED TECHNOLOGY */}
+      <section className="py-12 bg-gradient-to-r from-gray-50 via-blue-50/20 to-purple-50/20">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6">
+          <div className="text-center mb-10">
+            <p className="text-sm font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent uppercase tracking-wider mb-2">
+              Powered By Industry-Leading Technology
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center justify-center gap-12 md:gap-16">
+            {/* axe-core */}
+            <div className="flex flex-col items-center gap-2 group">
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-lg blur-xl opacity-20 group-hover:opacity-40 transition-opacity"></div>
+                <div className="relative px-6 py-3 bg-white rounded-lg border-2 border-gray-200 group-hover:border-blue-300 transition-colors">
+                  <div className="text-3xl font-black bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">axe</div>
+                </div>
+              </div>
+              <p className="text-xs text-gray-600 font-semibold">Industry Standard</p>
+            </div>
+            
+            {/* Stripe */}
+            <div className="flex flex-col items-center gap-2 group">
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg blur-xl opacity-20 group-hover:opacity-40 transition-opacity"></div>
+                <div className="relative px-6 py-3 bg-white rounded-lg border-2 border-gray-200 group-hover:border-purple-300 transition-colors">
+                  <svg className="h-7" viewBox="0 0 60 25" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M59.64 14.28h-8.06c.19 1.93 1.6 2.55 3.2 2.55 1.64 0 2.96-.37 4.05-.95v3.32a8.33 8.33 0 0 1-4.56 1.1c-4.01 0-6.83-2.5-6.83-7.48 0-4.19 2.39-7.52 6.3-7.52 3.92 0 5.96 3.28 5.96 7.5 0 .4-.04 1.26-.06 1.48zm-5.92-5.62c-1.03 0-2.17.73-2.17 2.58h4.25c0-1.85-1.07-2.58-2.08-2.58zM40.95 20.3c-1.44 0-2.32-.6-2.9-1.04l-.02 4.63-4.12.87V5.57h3.76l.08 1.02a4.7 4.7 0 0 1 3.23-1.29c2.9 0 5.62 2.6 5.62 7.4 0 5.23-2.7 7.6-5.65 7.6zM40 8.95c-.95 0-1.54.34-1.97.81l.02 6.12c.4.44.98.78 1.95.78 1.52 0 2.54-1.65 2.54-3.87 0-2.15-1.04-3.84-2.54-3.84zM28.24 5.57h4.13v14.44h-4.13V5.57zm0-4.7L32.37 0v3.36l-4.13.88V.88zm-4.32 9.35v9.79H19.8V5.57h3.7l.12 1.22c1-1.77 3.07-1.41 3.62-1.22v3.79c-.52-.17-2.29-.43-3.32.86zm-8.55 4.72c0 2.43 2.6 1.68 3.12 1.46v3.36c-.55.3-1.54.54-2.89.54a4.15 4.15 0 0 1-4.27-4.24l.01-13.17 4.02-.86v3.54h3.14V9.1h-3.13v5.85zm-4.91.7c0 2.97-2.31 4.66-5.73 4.66a11.2 11.2 0 0 1-4.46-.93v-3.93c1.38.75 3.1 1.31 4.46 1.31.92 0 1.53-.24 1.53-1C6.26 13.77 0 14.51 0 9.95 0 7.04 2.28 5.3 5.62 5.3c1.36 0 2.72.2 4.09.75v3.88a9.23 9.23 0 0 0-4.1-1.06c-.86 0-1.44.25-1.44.9 0 1.85 6.29.97 6.29 5.88z" fill="url(#stripeGradient)"/>
+                    <defs>
+                      <linearGradient id="stripeGradient" x1="0" y1="0" x2="60" y2="25" gradientUnits="userSpaceOnUse">
+                        <stop stopColor="#8B5CF6"/>
+                        <stop offset="1" stopColor="#EC4899"/>
+                      </linearGradient>
+                    </defs>
+                  </svg>
+                </div>
+              </div>
+              <p className="text-xs text-gray-600 font-semibold">Secure Payments</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* WHAT ACCESSCHECK DELIVERS */}
+      <section id="success" className="py-16 sm:py-20 md:py-24 bg-gradient-to-b from-gray-50 to-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="text-center mb-16">
-            <span className="inline-block px-4 py-1 rounded-full bg-gradient-to-r from-green-100 to-emerald-100 border border-green-200/50 text-xs font-bold uppercase mb-4" data-animate>
-              <span className="bg-gradient-to-r from-green-700 to-emerald-700 bg-clip-text text-transparent">Success Stories</span>
+            <span className="inline-block px-4 py-1 rounded-full bg-gradient-to-r from-blue-100 to-cyan-100 border border-blue-200/50 text-xs font-bold uppercase mb-4" data-animate>
+              <span className="bg-gradient-to-r from-blue-700 to-cyan-700 bg-clip-text text-transparent">What You Get</span>
             </span>
             <h2 className="text-4xl lg:text-5xl font-black mb-4" data-animate>
-              Real Results From{' '}
-              <span className="bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 bg-clip-text text-transparent gradient-text">
-                Real Companies
+              Everything You Need To{' '}
+              <span className="bg-gradient-to-r from-blue-600 via-cyan-600 to-purple-600 bg-clip-text text-transparent gradient-text">
+                Achieve Compliance
               </span>
             </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto mt-4">
+              Built with axe-core, the same accessibility engine trusted by Fortune 500 companies and government agencies worldwide.
+            </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {[
               {
-                company: 'Finverta Bank',
-                industry: 'Fintech',
-                result: '97% WCAG AA',
-                metric: '8 weeks',
-                quote: 'AccessCheck transformed our compliance audit from a blocker to a competitive advantage. We cut manual audit time by half.',
-                author: 'Laura Mitchell',
-                role: 'Head of Risk & Compliance',
+                icon: ScanSearch,
+                title: 'Industry-Standard Testing',
+                description: 'Powered by axe-core, the same accessibility engine used by Google, Microsoft, and government agencies worldwide.',
                 gradient: 'from-blue-500 to-cyan-500',
-                stats: [
-                  { value: '51%', label: 'Less audit time' },
-                  { value: '100%', label: 'Vendor approval' }
+                iconBg: 'from-blue-500/10 to-cyan-500/10',
+                features: [
+                  'WCAG 2.1 Level A & AA compliance',
+                  '90+ automated accessibility checks',
+                  'Section 508 compliance testing',
+                  'Real browser testing with Puppeteer'
                 ]
               },
               {
-                company: 'EduNexa Learning',
-                industry: 'EdTech',
-                result: '$1.4M Contract',
-                metric: 'Renewed',
-                quote: 'The executive-ready reports made board buy-in instant. We exceeded our AA target ahead of schedule.',
-                author: 'Daniel Rivera',
-                role: 'CTO',
+                icon: FileText,
+                title: 'Executive-Ready Reports',
+                description: 'Professional PDF reports with detailed findings, fix recommendations, and compliance scores that satisfy auditors.',
                 gradient: 'from-purple-500 to-pink-500',
-                stats: [
-                  { value: '32%', label: 'Better completion' },
-                  { value: '3 days', label: 'To approval' }
+                iconBg: 'from-purple-500/10 to-pink-500/10',
+                features: [
+                  'Branded compliance certificates',
+                  'Detailed issue breakdowns',
+                  'Priority-based fix recommendations',
+                  'Historical trend analysis'
                 ]
               },
               {
-                company: 'Mercato Italia',
-                industry: 'E-commerce',
-                result: '18% Lower',
-                metric: 'Bounce rate',
-                quote: 'The fix suggestions were perfect for our stack. Simple contrast and label improvements boosted conversions significantly.',
-                author: 'Giulia Bianchi',
-                role: 'Growth Lead',
-                gradient: 'from-rose-500 to-orange-500',
-                stats: [
-                  { value: '7%', label: 'More conversions' },
-                  { value: '0', label: 'ADA complaints' }
+                icon: Zap,
+                title: 'Developer-Friendly Integration',
+                description: 'RESTful API with comprehensive documentation. Integrate accessibility testing into your CI/CD pipeline.',
+                gradient: 'from-orange-500 to-red-500',
+                iconBg: 'from-orange-500/10 to-red-500/10',
+                features: [
+                  'Simple REST API with API keys',
+                  'Bulk scanning via CSV upload',
+                  'Scheduled automated monitoring',
+                  'Webhook notifications for issues'
                 ]
               },
               {
-                company: 'CivicPortal EU',
-                industry: 'Public Sector',
-                result: 'EU Act',
-                metric: 'Compliant',
-                quote: 'Documented continuous compliance made procurement seamless. The API integration catches issues before deployment.',
-                author: 'Matteo Rossi',
-                role: 'Program Manager',
+                icon: Shield,
+                title: 'Continuous Compliance',
+                description: 'Stay compliant with automated scheduled scans and instant alerts when accessibility issues are detected.',
                 gradient: 'from-emerald-500 to-teal-500',
-                stats: [
-                  { value: 'AA', label: 'Certification' },
-                  { value: '24/7', label: 'Monitoring' }
+                iconBg: 'from-emerald-500/10 to-teal-500/10',
+                features: [
+                  'Automated daily/weekly scans',
+                  'Email alerts for new issues',
+                  'Historical compliance tracking',
+                  'Export audit trails for regulators'
                 ]
               }
             ].map((story, i) => (
@@ -753,39 +697,39 @@ export default function Home() {
                 <div className={`absolute inset-0 bg-gradient-to-br ${story.gradient} opacity-0 group-hover:opacity-5 rounded-2xl transition-opacity`} />
                 
                 <div className="relative">
-                  <div className="flex items-start justify-between mb-6">
-                    <div>
-                      <h3 className="text-2xl font-bold text-gray-900">{story.company}</h3>
-                      <p className="text-sm text-gray-500 font-medium">{story.industry}</p>
-                    </div>
-                    <div className={`px-4 py-2 rounded-lg bg-gradient-to-r ${story.gradient} text-white`}>
-                      <div className="font-black text-lg">{story.result}</div>
-                      <div className="text-xs opacity-90">{story.metric}</div>
-                    </div>
-                  </div>
-                  
-                  <blockquote className="mb-6 text-gray-700 leading-relaxed italic">
-                    &ldquo;{story.quote}&rdquo;
-                  </blockquote>
-                  
-                  <div className="grid grid-cols-2 gap-4 mb-6">
-                    {story.stats.map((stat, j) => (
-                      <div key={j} className="text-center p-3 rounded-lg bg-gray-50 group-hover:bg-gradient-to-br group-hover:from-gray-50 group-hover:to-white transition-colors">
-                        <div className={`text-2xl font-black bg-gradient-to-r ${story.gradient} bg-clip-text text-transparent`}>
-                          {stat.value}
-                        </div>
-                        <div className="text-xs text-gray-600 font-medium">{stat.label}</div>
+                  {/* Icon Header */}
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="relative">
+                      {/* Gradient glow effect */}
+                      <div className={`absolute inset-0 bg-gradient-to-br ${story.gradient} opacity-20 blur-xl rounded-2xl group-hover:opacity-40 transition-opacity`}></div>
+                      {/* Icon container */}
+                      <div className={`relative w-16 h-16 rounded-2xl bg-gradient-to-br ${story.gradient} shadow-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
+                        <story.icon className="w-8 h-8 text-white stroke-[2.5]" />
                       </div>
-                    ))}
-                  </div>
-                  
-                  <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${story.gradient} opacity-20`} />
+                    </div>
                     <div>
-                      <div className="font-semibold text-gray-900">{story.author}</div>
-                      <div className="text-sm text-gray-500">{story.role}</div>
+                      <h3 className="text-2xl font-bold text-gray-900">{story.title}</h3>
                     </div>
                   </div>
+                  
+                  {/* Description */}
+                  <p className="mb-6 text-gray-600 leading-relaxed">
+                    {story.description}
+                  </p>
+                  
+                  {/* Features List */}
+                  <ul className="space-y-3">
+                    {story.features.map((feature, j) => (
+                      <li key={j} className="flex items-start gap-3">
+                        <div className={`w-5 h-5 rounded-full bg-gradient-to-br ${story.gradient} flex items-center justify-center flex-shrink-0 mt-0.5`}>
+                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                          </svg>
+                        </div>
+                        <span className="text-sm text-gray-700 font-medium">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               </div>
             ))}
@@ -828,7 +772,7 @@ export default function Home() {
               },
               {
                 q: 'Is there a free trial available?',
-                a: 'Absolutely. Both Pro and Business plans include a 14-day free trial with full features. No credit card required to start, and you can downgrade to our free plan anytime.'
+                a: 'No, we do not offer a free trial. Our Pro plan is $19/month for up to 10 scans per day, with full accessibility reports, priority support, and PDF exports. You can cancel anytime.'
               }
             ].map((faq, i) => (
               <details
@@ -843,7 +787,7 @@ export default function Home() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </summary>
-                <p className="mt-4 text-gray-600 leading-relaxed">{faq.a}</p>
+                <p className="mt-4 text-gray-800 leading-relaxed">{faq.a}</p>
               </details>
             ))}
           </div>
@@ -852,7 +796,7 @@ export default function Home() {
             <h3 className="text-2xl font-bold mb-3 bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
               Still have questions?
             </h3>
-            <p className="text-gray-600 mb-6">Our expert support team is here to help you succeed with accessibility compliance.</p>
+            <p className="text-gray-800 mb-6">Our expert support team is here to help you succeed with accessibility compliance.</p>
             <button className="px-8 py-3 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold hover:shadow-xl transition-all hover-lift">
               Contact Support
             </button>
@@ -897,5 +841,6 @@ export default function Home() {
       {/* FOOTER */}
       <LegalFooter />
     </main>
+    </>
   );
 }

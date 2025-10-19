@@ -85,6 +85,24 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     return;
   }
 
+  // SECURITY: Validate that the Stripe customer email matches the user's registered email
+  if (userId && customerEmail) {
+    const dbUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { email: true },
+    });
+
+    if (dbUser && dbUser.email.toLowerCase() !== customerEmail.toLowerCase()) {
+      log.error("EMAIL MISMATCH DETECTED: Stripe customer email does not match user's registered email", {
+        userId,
+        registeredEmail: dbUser.email,
+        stripeEmail: customerEmail,
+        sessionId: session.id,
+      });
+      // Still process but log the mismatch for investigation
+    }
+  }
+
   // Determine which plan was purchased
   let plan = "free";
   const lineItems = await stripe.checkout.sessions.listLineItems(session.id);
@@ -110,9 +128,11 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
         id: userId,
         email: customerEmail || userId,
         subscription: plan,
+        stripeCustomerId: session.customer as string,
       },
       update: {
         subscription: plan,
+        stripeCustomerId: session.customer as string,
       },
     });
   }
@@ -136,11 +156,19 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 }
 
 async function handleSubscriptionChange(subscription: Stripe.Subscription) {
-  const userId = subscription.metadata?.userId;
+  const metadataUserId = subscription.metadata?.userId;
   const customerId = subscription.customer as string;
+  // Use metadata userId if present, otherwise fall back to stored stripeCustomerId
+  let userId: string | undefined = metadataUserId;
+  if (!userId) {
+    const dbUser = await prisma.user.findUnique({ where: { stripeCustomerId: customerId } });
+    if (dbUser) {
+      userId = dbUser.id;
+    }
+  }
 
   if (!userId) {
-    log.warn("Subscription change but no userId in metadata", { subscriptionId: subscription.id, customerId });
+    log.warn("Subscription change but no userId in metadata or stripeCustomerId match", { subscriptionId: subscription.id, customerId });
     return;
   }
 
@@ -160,10 +188,30 @@ async function handleSubscriptionChange(subscription: Stripe.Subscription) {
                  subscription.status === "past_due" ? "past_due" :
                  subscription.status === "canceled" ? "cancelled" : "active";
 
+  // Check if this is a trial subscription
+  const isTrialing = subscription.status === "trialing";
+  const trialEnd = subscription.trial_end ? new Date(subscription.trial_end * 1000) : null;
+
   // Update user
+  const updateData: {
+    subscription: string;
+    trialStarted?: Date;
+    trialEnds?: Date;
+    hadTrial?: boolean;
+  } = {
+    subscription: isTrialing ? "trial" : plan,
+  };
+
+  // If trial is active, set trial dates
+  if (isTrialing && trialEnd) {
+    updateData.trialStarted = new Date();
+    updateData.trialEnds = trialEnd;
+    updateData.hadTrial = true;
+  }
+
   await prisma.user.update({
     where: { id: userId },
-    data: { subscription: plan },
+    data: updateData,
   });
 
   // Update or create billing record (temporarily commented out until Prisma regenerated)
@@ -185,14 +233,30 @@ async function handleSubscriptionChange(subscription: Stripe.Subscription) {
   //   },
   // });
 
-  log.info("Subscription updated", { userId, plan, status });
+  log.info("Subscription updated", { 
+    userId, 
+    plan, 
+    status, 
+    isTrialing, 
+    trialEnd: trialEnd?.toISOString(),
+    updateData 
+  });
 }
 
 async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
-  const userId = subscription.metadata?.userId;
+  const metadataUserId = subscription.metadata?.userId;
+  const customerId = subscription.customer as string;
+  // Use metadata userId if present, otherwise fall back to stored stripeCustomerId
+  let userId: string | undefined = metadataUserId;
+  if (!userId) {
+    const dbUser = await prisma.user.findUnique({ where: { stripeCustomerId: customerId } });
+    if (dbUser) {
+      userId = dbUser.id;
+    }
+  }
 
   if (!userId) {
-    log.warn("Subscription deleted but no userId in metadata", { subscriptionId: subscription.id });
+    log.warn("Subscription deleted but no userId in metadata or stripeCustomerId match", { subscriptionId: subscription.id, customerId });
     return;
   }
 

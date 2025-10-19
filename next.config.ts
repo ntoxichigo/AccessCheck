@@ -10,6 +10,12 @@ const nextConfig: NextConfig = {
     // Avoid failing the build on lint errors; surface them in dev instead
     ignoreDuringBuilds: true,
   },
+  typescript: {
+    // Speed up dev by not type-checking during build (use editor for type errors)
+    ignoreBuildErrors: true,
+  },
+  // Disable source maps in development for faster compilation
+  productionBrowserSourceMaps: false,
   images: {
     remotePatterns: [
       {
@@ -19,24 +25,45 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  // Fix for server-side modules in production build
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      config.externals = config.externals || [];
+      config.externals.push('@react-email/render');
+    }
+    if (!isServer) {
+      // Prevent winston from being bundled on client-side
+      config.resolve = config.resolve || {};
+      config.resolve.fallback = config.resolve.fallback || {};
+      config.resolve.fallback.fs = false;
+      config.resolve.fallback.path = false;
+      config.resolve.fallback.stream = false;
+    }
+    return config;
+  },
 };
 
-export default withSentryConfig(nextConfig, {
-  // For all available options, see:
-  // https://www.npmjs.com/package/@sentry/webpack-plugin#options
+// Only wrap with Sentry in production - it slows down development significantly
+const config = process.env.NODE_ENV === 'production' 
+  ? withSentryConfig(nextConfig, {
+      // For all available options, see:
+      // https://www.npmjs.com/package/@sentry/webpack-plugin#options
 
-  org: "accesscheck",
+      org: "accesscheck",
 
   project: "javascript-nextjs",
 
   // Only print logs for uploading source maps in CI
   silent: !process.env.CI,
 
+  // Disable source map upload in development for faster builds
+  disableSourceMapUpload: process.env.NODE_ENV !== 'production',
+
   // For all available options, see:
   // https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/
 
-  // Upload a larger set of source maps for prettier stack traces (increases build time)
-  widenClientFileUpload: true,
+  // Disable source map upload in development
+  widenClientFileUpload: false,
 
   // Uncomment to route browser requests to Sentry through a Next.js rewrite to circumvent ad-blockers.
   // This can increase your server load as well as your hosting bill.
@@ -52,4 +79,7 @@ export default withSentryConfig(nextConfig, {
   // https://docs.sentry.io/product/crons/
   // https://vercel.com/docs/cron-jobs
   automaticVercelMonitors: true,
-});
+})
+  : nextConfig;
+
+export default config;

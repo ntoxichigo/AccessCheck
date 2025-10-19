@@ -5,7 +5,7 @@
  * Supports upgrade, downgrade, cancellation with prorations
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '../ui/button';
 import { useUser } from '@clerk/nextjs';
@@ -47,11 +47,34 @@ export function EnhancedSubscriptionManager() {
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
 
-  // Mock subscription data - replace with real data from your API
+  // Fetch real subscription data
   const [subscription, setSubscription] = useState<SubscriptionData>({
     plan: 'free',
     status: 'active',
   });
+
+  useEffect(() => {
+    const fetchSubscription = async () => {
+      try {
+        const response = await fetch('/api/user/subscription');
+        if (response.ok) {
+          const data = await response.json();
+          setSubscription({
+            plan: data.subscription || 'free',
+            status: data.status || 'active',
+            currentPeriodEnd: data.currentPeriodEnd,
+            cancelAtPeriodEnd: data.cancelAtPeriodEnd,
+          });
+        }
+      } catch (error) {
+        console.error('Failed to fetch subscription:', error);
+      }
+    };
+
+    if (user) {
+      fetchSubscription();
+    }
+  }, [user]);
 
   const plans: Plan[] = [
     {
@@ -70,7 +93,7 @@ export function EnhancedSubscriptionManager() {
     {
       id: 'pro',
       name: 'Professional',
-      price: 29,
+      price: 19,
       priceId: process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID,
       icon: Crown,
       popular: true,
@@ -198,9 +221,11 @@ export function EnhancedSubscriptionManager() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ reason: cancelReason }),
       });
-
+      const result = await response.json();
       if (!response.ok) {
-        throw new Error('Failed to cancel subscription');
+        // Show error from API
+        const message = result.error || result.details || 'Failed to cancel subscription';
+        throw new Error(message);
       }
 
       notify.success('Subscription canceled', 'Your subscription will remain active until the end of the billing period');
@@ -210,7 +235,7 @@ export function EnhancedSubscriptionManager() {
 
       analytics.track('subscription_canceled', { reason: cancelReason });
     } catch (error) {
-      notify.error('Failed to cancel', error instanceof Error ? error.message : undefined);
+  notify.error('Failed to cancel subscription', error instanceof Error ? error.message : 'Unknown error');
     } finally {
       setLoading(false);
     }
@@ -244,37 +269,70 @@ export function EnhancedSubscriptionManager() {
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="p-6 rounded-xl border border-white/10 bg-gradient-to-br from-blue-600/20 to-purple-600/20 backdrop-blur-sm"
+          className="p-6 rounded-xl border-2 bg-gradient-to-br from-blue-50 to-purple-50 border-blue-300 shadow-md"
         >
-          <div className="flex items-start justify-between">
-            <div>
-              <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-                {currentPlan?.icon && <currentPlan.icon className="h-5 w-5" />}
-                Current Plan: {currentPlan?.name}
-              </h3>
-              <p className="text-sm text-gray-300 mt-1">
-                {subscription.cancelAtPeriodEnd
-                  ? `Cancels on ${subscription.currentPeriodEnd ? new Date(subscription.currentPeriodEnd).toLocaleDateString() : 'end of period'}`
-                  : `Renews on ${subscription.currentPeriodEnd ? new Date(subscription.currentPeriodEnd).toLocaleDateString() : 'auto'}`}
-              </p>
+          <div className="flex items-start justify-between flex-wrap gap-4">
+            <div className="flex-1">
+              <div className="flex items-center gap-3 mb-3">
+                {currentPlan?.icon && <currentPlan.icon className="h-6 w-6 text-blue-600" />}
+                <h3 className="text-xl font-bold text-gray-900">
+                  {subscription.plan === 'trial' ? 'Pro Plan (Trial Active)' : currentPlan?.name}
+                </h3>
+              </div>
+              
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="font-medium text-gray-700">Status:</span>
+                  <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                    subscription.cancelAtPeriodEnd 
+                      ? 'bg-orange-100 text-orange-700 border border-orange-300' 
+                      : 'bg-green-100 text-green-700 border border-green-300'
+                  }`}>
+                    {subscription.cancelAtPeriodEnd ? '⚠️ Canceling' : '✅ Active'}
+                  </span>
+                </div>
+                
+                {subscription.currentPeriodEnd && (
+                  <div className="flex items-center gap-2 text-sm text-gray-700">
+                    <span className="font-medium">
+                      {subscription.cancelAtPeriodEnd ? 'Ends on:' : subscription.plan === 'trial' ? 'Trial ends:' : 'Next payment:'}
+                    </span>
+                    <span className="font-semibold text-gray-900">
+                      {new Date(subscription.currentPeriodEnd).toLocaleDateString('en-US', { 
+                        month: 'long', 
+                        day: 'numeric', 
+                        year: 'numeric' 
+                      })}
+                    </span>
+                  </div>
+                )}
+                
+                {subscription.plan === 'trial' && !subscription.cancelAtPeriodEnd && (
+                  <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p className="text-sm text-blue-900">
+                      💡 Your trial will automatically convert to Pro ($19/month) after the trial period. Cancel anytime before then.
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
+            
             <div className="flex gap-2">
               {subscription.cancelAtPeriodEnd ? (
                 <Button
                   onClick={handleReactivate}
                   disabled={loading}
                   size="sm"
-                  className="bg-green-600 hover:bg-green-700"
+                  className="bg-green-600 hover:bg-green-700 text-white font-semibold"
                 >
-                  Reactivate
+                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Reactivate'}
                 </Button>
               ) : (
                 <Button
                   onClick={() => setShowCancelModal(true)}
                   disabled={loading}
                   size="sm"
-                  variant="outline"
-                  className="border-red-500 text-red-400 hover:bg-red-500/10"
+                  className="bg-red-600 hover:bg-red-700 text-white font-semibold"
                 >
                   Cancel Subscription
                 </Button>
@@ -299,40 +357,44 @@ export function EnhancedSubscriptionManager() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
               whileHover={{ scale: isCurrent ? 1 : 1.03, y: isCurrent ? 0 : -4 }}
-              className={`relative p-6 rounded-xl border transition-all duration-300 backdrop-blur-sm ${
-                isCurrent
-                  ? 'bg-gradient-to-br from-blue-600/20 to-purple-600/20 border-blue-500 shadow-lg shadow-blue-500/20'
-                  : plan.popular
-                  ? 'bg-gradient-to-br from-purple-600/10 to-pink-600/10 border-purple-500/50'
-                  : 'bg-white/5 border-white/10 hover:bg-white/10'
-              }`}
+              className={`relative p-6 rounded-xl border-2 transition-all duration-300 ${
+                  isCurrent
+                    ? 'bg-gradient-to-br from-blue-600 to-purple-600 text-white border-blue-500 shadow-xl'
+                    : plan.popular
+                    ? 'bg-gradient-to-br from-gray-50 to-gray-100 border-gray-300 shadow-md hover:shadow-lg'
+                    : 'bg-gradient-to-br from-gray-50 to-white border-gray-300 hover:border-gray-400 hover:shadow-md'
+                }`}
             >
-              {plan.popular && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 text-xs font-semibold text-white">
-                  Most Popular
+              {plan.popular && !isCurrent && (
+                <div className="absolute top-0 left-0 right-0 -mt-1 flex justify-center">
+                  <div className="px-3 py-1 rounded-b-lg bg-gradient-to-r from-purple-600 to-pink-600 text-xs font-semibold text-white shadow-md">
+                    Most Popular
+                  </div>
                 </div>
               )}
 
-              <div className="flex items-center justify-between mb-4">
-                <Icon className="h-8 w-8 text-blue-400" />
-                {isCurrent && (
-                  <span className="px-2 py-1 rounded-full bg-green-500/20 text-green-400 text-xs font-semibold">
-                    Current
-                  </span>
-                )}
+              <div className={plan.popular && !isCurrent ? 'mt-4' : ''}>
+                <div className="flex items-center justify-between mb-4">
+                  <Icon className={`h-8 w-8 ${isCurrent ? 'text-white' : 'text-blue-600'}`} />
+                  {isCurrent && (
+                    <span className="px-3 py-1 rounded-full bg-white/20 text-white text-xs font-bold border border-white/30">
+                      ✓ Current Plan
+                    </span>
+                  )}
+                </div>
               </div>
 
-              <h3 className="text-xl font-bold text-white mb-2">{plan.name}</h3>
+              <h3 className={`text-xl font-bold mb-2 ${isCurrent ? 'text-white' : 'text-gray-900'}`}>{plan.name}</h3>
               
               <div className="mb-4">
                 {plan.price === 0 && plan.id !== 'free' ? (
                   <div className="text-2xl font-bold text-white">Custom Pricing</div>
                 ) : (
                   <div className="flex items-baseline">
-                    <span className="text-4xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                    <span className={`text-4xl font-bold ${isCurrent ? 'bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent' : 'text-gray-900'}`}>
                       ${plan.price}
                     </span>
-                    {plan.price > 0 && <span className="text-gray-400 ml-2">/month</span>}
+                    {plan.price > 0 && <span className={`ml-2 ${isCurrent ? 'text-gray-200' : 'text-gray-700'}`}>/month</span>}
                   </div>
                 )}
               </div>
@@ -344,10 +406,10 @@ export function EnhancedSubscriptionManager() {
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.1 + idx * 0.03 }}
-                    className="flex items-start text-sm text-gray-300"
+                    className={`flex items-start text-sm ${isCurrent ? 'text-white' : 'text-gray-700'}`}
                   >
-                    <Check className="h-4 w-4 mr-2 text-blue-400 flex-shrink-0 mt-0.5" />
-                    <span>{feature}</span>
+                    <Check className={`h-4 w-4 mr-2 ${isCurrent ? 'text-white' : 'text-blue-600'} flex-shrink-0 mt-0.5`} />
+                    <span className="font-medium">{feature}</span>
                   </motion.li>
                 ))}
               </ul>

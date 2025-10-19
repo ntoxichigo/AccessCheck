@@ -1,3 +1,6 @@
+// Server-side logger utility
+// Do NOT add 'use server' directive - this is a utility module, not a server action
+
 import winston from 'winston';
 
 // Custom log levels
@@ -37,28 +40,32 @@ const logger = winston.createLogger({
         )
       ),
     }),
-    // Write all logs to separate files
-    new winston.transports.File({
-      filename: 'logs/error.log',
-      level: 'error',
-      maxsize: 5242880, // 5MB
-      maxFiles: 5,
-    }),
-    new winston.transports.File({
-      filename: 'logs/all.log',
-      maxsize: 5242880, // 5MB
-      maxFiles: 5,
-    }),
+    // File transports only in Node.js server environment
+    ...(typeof window === 'undefined' ? [
+      new winston.transports.File({
+        filename: 'logs/error.log',
+        level: 'error',
+        maxsize: 5242880, // 5MB
+        maxFiles: 5,
+      }),
+      new winston.transports.File({
+        filename: 'logs/all.log',
+        maxsize: 5242880, // 5MB
+        maxFiles: 5,
+      }),
+    ] : []),
   ],
 });
 
-// Log unhandled exceptions and rejections
-logger.exceptions.handle(
-  new winston.transports.File({ filename: 'logs/exceptions.log' })
-);
-logger.rejections.handle(
-  new winston.transports.File({ filename: 'logs/rejections.log' })
-);
+// Log unhandled exceptions and rejections (server-only)
+if (typeof window === 'undefined') {
+  logger.exceptions.handle(
+    new winston.transports.File({ filename: 'logs/exceptions.log' })
+  );
+  logger.rejections.handle(
+    new winston.transports.File({ filename: 'logs/rejections.log' })
+  );
+}
 
 export interface LogContext {
   userId?: string;

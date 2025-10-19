@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { Card } from '../ui/card';
 import { Button } from '../ui/button';
-import { log } from '../../lib/logger';
 
 interface SystemHealth {
   status: 'healthy' | 'degraded' | 'down';
@@ -32,7 +31,7 @@ export default function MonitoringDashboard() {
       const data = await response.json();
       setHealth(data);
     } catch (error) {
-      log.error('Failed to fetch health data', { error: error instanceof Error ? error : new Error(String(error)) });
+      console.error('Failed to fetch health data', error);
     } finally {
       setLoading(false);
     }

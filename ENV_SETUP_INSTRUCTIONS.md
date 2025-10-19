@@ -137,7 +137,29 @@ CONTACT_EMAIL=support@accesscheck.com
 
 ---
 
-## 6. After Updating Environment Variables
+## 6. Cron Job Secret (for Trial Reminder Emails)
+
+**Issue:** Missing `CRON_SECRET` for securing cron job endpoints
+
+**Solution:**
+1. Generate a secure random string:
+   ```bash
+   # On Windows (PowerShell):
+   -join ((48..57) + (65..90) + (97..122) | Get-Random -Count 32 | % {[char]$_})
+   
+   # On Linux/Mac:
+   openssl rand -base64 32
+   ```
+2. Add to `.env.local`:
+   ```bash
+   CRON_SECRET=your-generated-secure-random-string
+   ```
+
+This secret is used to authenticate the daily cron job that sends trial reminder emails.
+
+---
+
+## 7. After Updating Environment Variables
 
 1. **Stop the dev server** (Ctrl+C)
 2. **Restart the dev server:**
@@ -152,7 +174,7 @@ CONTACT_EMAIL=support@accesscheck.com
 
 ---
 
-## 7. Quick Checklist
+## 8. Quick Checklist
 
 - [ ] Supabase database is running (not paused)
 - [ ] DATABASE_URL is correct and accessible
@@ -161,6 +183,7 @@ CONTACT_EMAIL=support@accesscheck.com
 - [ ] Stripe webhook endpoint created
 - [ ] STRIPE_WEBHOOK_SECRET added
 - [ ] NEXT_PUBLIC_BASE_URL is set
+- [ ] CRON_SECRET generated and added
 - [ ] Dev server restarted after changes
 
 ---
@@ -172,6 +195,7 @@ If you're still experiencing issues:
 1. **Database issues:** Check Supabase dashboard for database status
 2. **Redis issues:** Verify Upstash credentials are copied correctly
 3. **Stripe issues:** Ensure webhook endpoint matches your local URL
-4. **General issues:** Check the terminal output for specific error messages
+4. **Cron job issues:** Ensure CRON_SECRET is set in both local `.env.local` and Vercel environment variables
+5. **General issues:** Check the terminal output for specific error messages
 
 All environment variables must be set for the application to work correctly.

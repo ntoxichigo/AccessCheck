@@ -302,7 +302,7 @@ tail -f logs/error.log   # Errors only
 | **Team Collaboration** | ❌ | ❌ | ✅ |
 | **Custom Integrations** | ❌ | ❌ | ✅ |
 | **SLA Guarantee** | ❌ | ❌ | ✅ |
-| **Price** | $0 | $29/mo | Custom |
+| **Price** | $0 | $15/mo | Custom |
 
 ---
 

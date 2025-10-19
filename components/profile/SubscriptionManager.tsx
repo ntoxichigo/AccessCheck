@@ -1,7 +1,9 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '../ui/button';
+import { useUser } from '@clerk/nextjs';
+import { Crown, CreditCard, Building2, X, AlertTriangle, Check, Loader2 } from 'lucide-react';
 
 interface Plan {
   id: string;
@@ -9,12 +11,35 @@ interface Plan {
   price: string;
   features: string[];
   current: boolean;
-  icon: string;
+  icon: React.ReactNode;
 }
 
 export default function SubscriptionManager() {
+  const { user } = useUser();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+  const [userPlan, setUserPlan] = useState<'free' | 'trial' | 'pro' | 'enterprise'>('free');
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [cancelReason, setCancelReason] = useState('');
+
+  useEffect(() => {
+    // Fetch user's current plan
+    const fetchUserPlan = async () => {
+      try {
+        const response = await fetch('/api/user/subscription');
+        if (response.ok) {
+          const data = await response.json();
+          setUserPlan(data.subscription || 'free');
+        }
+      } catch (error) {
+        console.error('Failed to fetch subscription:', error);
+      }
+    };
+
+    if (user) {
+      fetchUserPlan();
+    }
+  }, [user]);
 
   const plans: Plan[] = [
     {
@@ -23,7 +48,7 @@ export default function SubscriptionManager() {
       price: '$0/month',
       icon: '🆓',
       features: [
-        '5 scans per month',
+        '1 scan per day',
         'Basic accessibility reports',
         'Email support'
       ],
@@ -32,14 +57,15 @@ export default function SubscriptionManager() {
     {
       id: 'pro',
       name: 'Professional',
-      price: '$29/month',
+      price: '$19/month',
       icon: '💎',
       features: [
         'Unlimited scans',
         'Detailed reports with remediation tips',
         'Priority support',
         'API access',
-        'Team collaboration'
+        'PDF exports',
+        'Bulk scanning'
       ],
       current: false
     },
@@ -49,6 +75,7 @@ export default function SubscriptionManager() {
       price: 'Custom',
       icon: '🏢',
       features: [
+        'Unlimited scans',
         'Everything in Professional',
         'Custom integrations',
         'Dedicated account manager',
@@ -90,17 +117,21 @@ export default function SubscriptionManager() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
             whileHover={{ scale: plan.current ? 1 : 1.05, y: plan.current ? 0 : -8 }}
-            className={`p-6 rounded-xl border ${
+            className={`p-6 rounded-xl transition-all duration-300 ${
               plan.current
-                ? 'bg-gradient-to-br from-blue-600/20 to-purple-600/20 border-blue-500 shadow-lg shadow-blue-500/20'
-                : 'bg-white/5 border-white/10 hover:bg-white/10'
-            } transition-all duration-300 backdrop-blur-sm`}
+                ? 'bg-gradient-to-br from-blue-600 to-purple-600 text-white border-blue-500 shadow-lg'
+                : 'bg-white border border-gray-200 hover:bg-gray-50 text-gray-900'
+            }`}
           >
             <div className="text-4xl mb-3">{plan.icon}</div>
-            <h3 className="text-xl font-bold text-white mb-2">{plan.name}</h3>
-            <div className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-4">
-              {plan.price}
-            </div>
+            <h3 className={`text-xl font-bold mb-2 ${plan.current ? 'text-white' : 'text-gray-900'}`}>{plan.name}</h3>
+            {plan.current ? (
+              <div className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-4">
+                {plan.price}
+              </div>
+            ) : (
+              <div className="text-3xl font-bold text-gray-900 mb-4">{plan.price}</div>
+            )}
             
             <ul className="space-y-2 mb-6">
               {plan.features.map((feature, idx) => (
@@ -109,7 +140,7 @@ export default function SubscriptionManager() {
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.1 + idx * 0.05 }}
-                  className="flex items-center text-sm text-gray-300"
+                  className={`flex items-center text-sm ${plan.current ? 'text-gray-800 font-medium' : 'text-gray-700'}`}
                 >
                   <svg
                     className="w-4 h-4 mr-2 text-blue-400 flex-shrink-0"
@@ -136,11 +167,7 @@ export default function SubscriptionManager() {
               <Button
                 onClick={() => handleUpgrade(plan.id)}
                 disabled={loading || plan.current}
-                className={`w-full ${
-                  plan.current 
-                    ? 'bg-white/10 cursor-not-allowed' 
-                    : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700'
-                }`}
+                className={`w-full ${plan.current ? 'bg-white/10 cursor-not-allowed text-white/70' : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white'}`}
                 variant={plan.current ? 'outline' : 'default'}
               >
                 {plan.current

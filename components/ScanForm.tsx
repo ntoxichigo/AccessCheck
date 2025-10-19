@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { ScanAgreementCheckbox } from './legal/ScanAgreementCheckbox';
+import { UpgradeModal } from './UpgradeModal';
 
 interface ScanFormProps {
   onScanComplete: (results: Record<string, unknown>) => void;
@@ -14,6 +15,7 @@ export default function ScanForm({ onScanComplete, onLoadingChange, inputRef }: 
   const [error, setError] = useState('');
   const [authPrompt, setAuthPrompt] = useState(false);
   const [upgradePrompt, setUpgradePrompt] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [visible, setVisible] = useState(false);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [focused, setFocused] = useState(false);
@@ -85,31 +87,47 @@ export default function ScanForm({ onScanComplete, onLoadingChange, inputRef }: 
       });
 
       const data = await response.json();
-      
+
       if (data.success) {
-        onScanComplete(data);
+        // Pass the complete data structure including nested results
+        onScanComplete({
+          ...data.results,  // Spread the axe results
+          id: data.id,      // Add scan ID
+          risk: data.risk,  // Add risk assessment
+          success: data.success
+        });
         setUpgradePrompt(false);
         setAuthPrompt(false);
       } else {
         // Handle error message that could be a string or an object
-        const errorMessage = typeof data.error === 'object' && data.error?.message
-          ? data.error.message
-          : typeof data.error === 'string'
-            ? data.error
-            : data.message || 'Scan failed. Please try again.';
+        let errorMessage: string;
+        
+        if (typeof data.error === 'object' && data.error !== null) {
+          // Extract message from error object
+          errorMessage = data.error.message || JSON.stringify(data.error);
+        } else if (typeof data.error === 'string') {
+          errorMessage = data.error;
+        } else if (typeof data.message === 'string') {
+          errorMessage = data.message;
+        } else {
+          errorMessage = 'Scan failed. Please try again.';
+        }
         
         if (data.needsAuth) {
           setError(errorMessage || 'Sign in to run your free scan.');
           setAuthPrompt(true);
           setUpgradePrompt(false);
+          setShowUpgradeModal(false);
         } else if (data.needsUpgrade) {
           setError(errorMessage || 'You\'ve used all your free scans. Upgrade to continue.');
           setUpgradePrompt(true);
           setAuthPrompt(false);
+          setShowUpgradeModal(true);
         } else {
           setError(errorMessage);
           setUpgradePrompt(false);
           setAuthPrompt(false);
+          setShowUpgradeModal(false);
         }
       }
     } catch {
@@ -438,7 +456,7 @@ export default function ScanForm({ onScanComplete, onLoadingChange, inputRef }: 
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
                         </svg>
-                        Upgrade for Unlimited Scans
+                        Upgrade for 10 Scans/Day
                       </a>
                     )}
                   </div>
@@ -488,6 +506,13 @@ export default function ScanForm({ onScanComplete, onLoadingChange, inputRef }: 
           </div>
         </div>
       </form>
+
+      {/* Upgrade Modal */}
+      <UpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        reason="scan_limit"
+      />
     </div>
   );
 }

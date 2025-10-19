@@ -7,6 +7,8 @@ import { AxePuppeteer } from "@axe-core/puppeteer";
 import type { Prisma } from "@prisma/client";
 import { log } from '../../../lib/logger';
 import { handleApiError } from '../../../lib/errors';
+import { Resend } from 'resend';
+import { generateScanCompletionEmail } from '../../../lib/email-templates';
 
 function computeRiskFromCounts(counts: Record<string, number>) {
   const weights: Record<string, number> = { critical: 1.0, serious: 0.7, moderate: 0.4, minor: 0.2 };
@@ -70,8 +72,21 @@ export async function POST(req: Request) {
         where: { id: userId },
         create: { id: userId, email: userId || 'unknown', subscription: "free" },
         update: {},
+        select: {
+          subscription: true,
+          trialStarted: true,
+          trialEnds: true,
+        },
       });
-      userTier = user?.subscription || "free";
+      
+      // Check if trial is active
+      const now = new Date();
+      const isTrialActive = user.trialStarted && 
+        user.trialEnds && 
+        now >= user.trialStarted && 
+        now <= user.trialEnds;
+      
+      userTier = isTrialActive ? 'trial' : (user?.subscription || "free");
     }
 
     // Enforce limits
@@ -87,11 +102,40 @@ export async function POST(req: Request) {
         );
       }
     } else if (userTier === "free") {
-      const total = await prisma.scan.count({ where: { userId } });
-      if (total >= 5) {
-        log.info('Free user scan limit reached', { userId });
+      // Free users: 1 scan per day
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const scansToday = await prisma.scan.count({ 
+        where: { 
+          userId,
+          createdAt: { gte: today }
+        } 
+      });
+      
+      if (scansToday >= 1) {
+        log.info('Free user daily scan limit reached', { userId, scansToday });
         return NextResponse.json(
-          { success: false, needsUpgrade: true, message: "You've used all 5 free scans. Upgrade to continue." },
+          { success: false, needsUpgrade: true, message: "You've used your daily scan. Upgrade to Pro for 10 scans/day." },
+          { status: 402 }
+        );
+      }
+    } else if (userTier === "pro" || userTier === "trial") {
+      // Pro and Trial users: 10 scans per day
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const scansToday = await prisma.scan.count({ 
+        where: { 
+          userId,
+          createdAt: { gte: today }
+        } 
+      });
+      
+      if (scansToday >= 10) {
+        log.info('Pro/Trial user daily scan limit reached', { userId, scansToday, tier: userTier });
+        return NextResponse.json(
+          { success: false, message: "You've used your 10 scans for today. Come back tomorrow!" },
           { status: 402 }
         );
       }
@@ -99,13 +143,41 @@ export async function POST(req: Request) {
 
     const browser = await puppeteer.launch({
       headless: true,
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      args: [
+        "--no-sandbox", 
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-accelerated-2d-canvas",
+        "--disable-gpu"
+      ],
     });
-    const page = await browser.newPage();
-
-    await page.goto(url, { waitUntil: "networkidle2" });
-    const results = await new AxePuppeteer(page).analyze();
-    await browser.close();
+    
+    let page;
+    let results;
+    
+    try {
+      page = await browser.newPage();
+      
+      // Set a default viewport
+      await page.setViewport({ width: 1920, height: 1080 });
+      
+      // Increase timeout and use more lenient wait condition
+      await page.goto(url, { 
+        waitUntil: "networkidle2",
+        timeout: 60000 // 60 seconds
+      });
+      
+      // Ensure page is fully loaded and ready
+      await page.waitForSelector('body', { timeout: 5000 });
+      
+      // Run accessibility analysis
+      results = await new AxePuppeteer(page).analyze();
+      
+      await browser.close();
+    } catch (error) {
+      await browser.close();
+      throw error;
+    }
 
     // Save full results for all scans
     const savedResults: Prisma.InputJsonValue = results as unknown as Prisma.InputJsonValue;
@@ -120,6 +192,60 @@ export async function POST(req: Request) {
       },
     });
     log.info('Scan completed and results saved', { userId: userId ?? undefined, url, scanId: createdScan.id });
+
+    // Send email notification if user is authenticated and has email preferences enabled
+    if (userId && process.env.RESEND_API_KEY) {
+      try {
+        const user = await currentUser();
+        const userSettings = await prisma.userSettings.findUnique({
+          where: { userId },
+          select: { emailPrefs: true },
+        });
+
+        if (userSettings?.emailPrefs !== false && user?.emailAddresses?.[0]?.emailAddress) {
+          const resend = new Resend(process.env.RESEND_API_KEY);
+
+          // Calculate violation counts by severity
+          const violations = (results?.violations || []) as Array<{ impact?: string | null }>;
+          const counts: Record<string, number> = violations.reduce((acc: Record<string, number>, v) => {
+            const impact = v.impact || 'unknown';
+            acc[impact] = (acc[impact] || 0) + 1;
+            return acc;
+          }, {} as Record<string, number>);
+
+          const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+          const reportUrl = `${baseUrl}/scan/${createdScan.id}`;
+
+          const emailHtml = generateScanCompletionEmail({
+            url,
+            scanId: createdScan.id,
+            violationsCount: violations.length,
+            criticalCount: (counts.critical as number) || 0,
+            seriousCount: (counts.serious as number) || 0,
+            moderateCount: (counts.moderate as number) || 0,
+            minorCount: (counts.minor as number) || 0,
+            userName: user.firstName || user.username || undefined,
+            reportUrl,
+          });
+
+          await resend.emails.send({
+            from: 'AccessCheck <noreply@accesscheck.com>',
+            to: user.emailAddresses[0].emailAddress,
+            subject: `Scan Complete: ${violations.length} issue${violations.length !== 1 ? 's' : ''} found on ${url}`,
+            html: emailHtml,
+          });
+
+          log.info('Email notification sent', { userId, scanId: createdScan.id });
+        }
+      } catch (emailError) {
+        // Don't fail the scan if email fails
+        log.error('Failed to send email notification', {
+          error: emailError instanceof Error ? emailError : new Error(String(emailError)),
+          userId,
+          scanId: createdScan.id,
+        });
+      }
+    }
 
     // Always return full results and risk for all users
     const risk = computeRiskFromViolations(results?.violations as Array<{ impact?: string }> || []);

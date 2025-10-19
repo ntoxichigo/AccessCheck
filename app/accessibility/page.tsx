@@ -1,4 +1,5 @@
 "use client";
+import NavBar from "../../components/NavBar";
 import PageLayout from "../../components/PageLayout";
 import { motion } from "framer-motion";
 import { typography } from "../../lib/design-system";
@@ -193,7 +194,9 @@ export default function AccessibilityStatementPage() {
   ];
 
   return (
-    <PageLayout theme="dark" containerSize="default">
+    <>
+      <NavBar />
+      <PageLayout theme="dark" containerSize="default">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -325,5 +328,6 @@ export default function AccessibilityStatementPage() {
         </p>
       </motion.div>
     </PageLayout>
+    </>
   );
 }

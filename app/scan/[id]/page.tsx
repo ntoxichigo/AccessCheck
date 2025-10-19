@@ -6,7 +6,6 @@ import ComplianceRisk from "../../../components/ComplianceRisk";
 import { ResultsDisplay } from "../../../components/ResultsDisplay";
 import NavBar from "../../../components/NavBar";
 import { useSubscription } from "../../../lib/hooks/useQueries";
-import { DisclaimerBanner } from "../../../components/legal/DisclaimerBanner";
 
 interface ScanData {
   id: string;
@@ -14,7 +13,24 @@ interface ScanData {
   createdAt: string;
   status: string;
   issuesFound: number;
-  results: any;
+  results: {
+    violations?: Array<{
+      help: string;
+      description: string;
+      impact: string;
+      helpUrl: string;
+      id?: string;
+      nodes?: Array<{ html: string }>;
+    }>;
+    risk?: {
+      standards: string[];
+      fines: {
+        usUSD: number;
+        euEUR: { min: number; max: number };
+        note?: string;
+      };
+    };
+  };
 }
 
 export default function ScanReportPage({ params }: { params: Promise<{ id: string }> }) {
@@ -33,7 +49,7 @@ export default function ScanReportPage({ params }: { params: Promise<{ id: strin
         if (mounted && data?.success) {
           setScan(data.scan as ScanData);
         }
-      } catch (e) {
+      } catch {
         if (mounted) setScan(null);
       } finally {
         if (mounted) setLoading(false);
@@ -49,7 +65,7 @@ export default function ScanReportPage({ params }: { params: Promise<{ id: strin
     return (
       <>
         <NavBar />
-        <main className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800">
+        <main className="min-h-screen bg-gradient-to-b from-gray-50 to-white text-gray-900">
           <div className="max-w-4xl mx-auto px-6 py-20 flex flex-col items-center justify-center">
             <motion.div
               initial={{ opacity: 0, scale: 0.8 }}
@@ -64,7 +80,7 @@ export default function ScanReportPage({ params }: { params: Promise<{ id: strin
               >
                 ⚙️
               </motion.div>
-              <div className="text-2xl text-white font-semibold">Loading accessibility report...</div>
+              <div className="text-2xl font-semibold">Loading accessibility report...</div>
             </motion.div>
           </div>
         </main>
@@ -76,7 +92,7 @@ export default function ScanReportPage({ params }: { params: Promise<{ id: strin
     return (
       <>
         <NavBar />
-        <main className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800">
+        <main className="min-h-screen bg-gradient-to-b from-gray-50 to-white text-gray-900">
           <div className="max-w-4xl mx-auto px-6 py-20 flex flex-col items-center justify-center">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -85,7 +101,7 @@ export default function ScanReportPage({ params }: { params: Promise<{ id: strin
             >
               <div className="text-6xl mb-4">❌</div>
               <div className="text-3xl font-bold text-red-400 mb-2">Report not found</div>
-              <div className="text-gray-400">Please check the scan ID or try again later.</div>
+              <div className="text-gray-700">Please check the scan ID or try again later.</div>
             </motion.div>
           </div>
         </main>
@@ -98,15 +114,10 @@ export default function ScanReportPage({ params }: { params: Promise<{ id: strin
   return (
     <>
       <NavBar />
-      <main className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 text-white">
+      <main className="min-h-screen bg-gradient-to-b from-gray-50 to-white text-gray-900">
         <div className="max-w-6xl mx-auto px-6 py-12">
-          {/* Legal Disclaimer */}
-          <div className="mb-6">
-            <DisclaimerBanner variant="compact" />
-          </div>
-
           <motion.div
-            className="mb-8 flex items-center gap-4 p-6 rounded-2xl bg-white/10 backdrop-blur-lg border border-white/10"
+            className="mb-8 flex items-center gap-4 p-6 rounded-2xl bg-white/80 backdrop-blur-sm border border-gray-200/50"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
@@ -114,12 +125,17 @@ export default function ScanReportPage({ params }: { params: Promise<{ id: strin
             <div className="text-5xl">📊</div>
             <div>
               <h1 className="text-3xl font-bold mb-1">Accessibility Scan Report</h1>
-              <div className="font-medium text-lg text-blue-400">{scan.url}</div>
-              <div className="text-sm text-gray-400">
-                {new Date(scan.createdAt).toLocaleString()} • <span className="font-semibold text-white">
+              <div className="font-medium text-lg text-blue-700">{scan.url}</div>
+              <div className="text-sm text-gray-700">
+                {new Date(scan.createdAt).toLocaleString()} • <span className="font-semibold text-gray-900">
                   {((scan.results as { violations?: unknown[] })?.violations?.length ?? scan.issuesFound)} {((((scan.results as { violations?: unknown[] })?.violations?.length ?? scan.issuesFound)) === 1 ? 'issue' : 'issues')} found
                 </span>
               </div>
+              {plan === 'free' && (
+                <div className="mt-3 px-4 py-2.5 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 shadow-md">
+                  <span className="text-base font-bold text-white">✨ Pro Plan: $19/month for unlimited scans & advanced features</span>
+                </div>
+              )}
             </div>
           </motion.div>
 
@@ -129,8 +145,7 @@ export default function ScanReportPage({ params }: { params: Promise<{ id: strin
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1, duration: 0.5 }}
           >
-            {/* @ts-expect-error - Type casting from unknown */}
-            <ReportSummary results={scan.results} />
+            <ReportSummary results={{ violations: scan.results.violations || [] }} />
           </motion.section>
 
           {(scan.results as { risk?: { standards: string[]; fines: { usUSD: number; euEUR: { min: number; max: number }; note?: string } } })?.risk && (
@@ -150,8 +165,13 @@ export default function ScanReportPage({ params }: { params: Promise<{ id: strin
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, duration: 0.5 }}
           >
-            {/* @ts-expect-error - Type casting from unknown */}
-            <ResultsDisplay results={scan.results} issuesFound={scan.issuesFound} userPlan={plan} />
+            <ResultsDisplay 
+              results={{ violations: scan.results.violations || [] }} 
+              issuesFound={scan.issuesFound} 
+              userPlan={plan}
+              scanId={scan.id}
+              showPdfExport={true}
+            />
           </motion.section>
 
           <motion.div
@@ -162,8 +182,8 @@ export default function ScanReportPage({ params }: { params: Promise<{ id: strin
           >
             <motion.a
               href="/dashboard"
-              className="inline-block bg-white/10 border border-white/20 text-white px-8 py-3 rounded-lg shadow-lg font-semibold"
-              whileHover={{ scale: 1.05, backgroundColor: "rgba(255,255,255,0.15)" }}
+              className="inline-block bg-white/80 border border-gray-200/50 text-gray-900 px-8 py-3 rounded-lg shadow-lg font-semibold"
+              whileHover={{ scale: 1.05, backgroundColor: "rgba(59,130,246,0.08)" }}
               whileTap={{ scale: 0.95 }}
             >
               Back to Dashboard

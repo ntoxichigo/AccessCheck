@@ -9,15 +9,30 @@ import ScanLoading from "../../components/loading/ScanLoading";
 import ComplianceRisk from "../../components/ComplianceRisk";
 import ScanHistory from "../../components/ScanHistory";
 import NavBar from "../../components/NavBar";
-import { SignedIn, SignedOut, RedirectToSignIn, UserButton, useUser } from "@clerk/nextjs";
+import { SignedIn, SignedOut, RedirectToSignIn, useUser } from "@clerk/nextjs";
 import Link from "next/link";
-import { DisclaimerBanner } from "../../components/legal/DisclaimerBanner";
+import { useOptimizedAnimations } from "../../hooks/useOptimizedAnimations";
+import { UsageIndicator } from "../../components/UsageIndicator";
+import { OnboardingTutorial } from "../../components/OnboardingTutorial";
 
 export default function DashboardPage() {
   const [results, setResults] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(false);
+  const [usageData, setUsageData] = useState<{
+    scansUsed: number;
+    scansLimit: number;
+    plan: 'free' | 'pro' | 'enterprise';
+    period: 'total' | 'daily';
+  } | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const { user } = useUser();
+  
+  // Use optimized animation hook
+  const { mounted, mousePos, particles, handleMouseMove } = useOptimizedAnimations({
+    particleCount: 6,
+    enableMouseTracking: true,
+    throttleMs: 100
+  });
 
   useEffect(() => {
     if (typeof window !== 'undefined' && window.location.hash === '#scan') {
@@ -26,28 +41,78 @@ export default function DashboardPage() {
     }
   }, []);
 
+  // Fetch usage data
+  useEffect(() => {
+    const fetchUsage = async () => {
+      try {
+        const response = await fetch('/api/usage');
+        if (response.ok) {
+          const data = await response.json();
+          setUsageData(data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch usage data:', error);
+      }
+    };
+
+    if (user) {
+      fetchUsage();
+    }
+  }, [user, results]); // Refetch when results change (after a scan)
+
   const content = (
     <>
       <NavBar />
-      <main className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 text-white">
-        <div className="max-w-6xl mx-auto px-6 py-16">
-          {/* Account toolbar */}
-          <motion.div 
+      <OnboardingTutorial />
+      <main className="relative min-h-screen bg-gradient-to-b from-gray-50 to-white text-gray-900 overflow-hidden" onMouseMove={handleMouseMove}>
+        {/* Animated Background */}
+        <div className="fixed inset-0 overflow-hidden pointer-events-none">
+          <div 
+            className="absolute inset-0 opacity-20"
+            style={{
+              background: 'radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.1) 0%, transparent 50%), radial-gradient(circle at 80% 70%, rgba(139, 92, 246, 0.1) 0%, transparent 50%)',
+              transform: `translate(${mousePos.x * 10}px, ${mousePos.y * 10}px)`
+            }}
+          />
+          {mounted && particles.map((p) => (
+            <div
+              key={p.id}
+              className="absolute rounded-full bg-gradient-to-br from-blue-400/20 to-purple-400/20"
+              style={{
+                left: `${p.x}%`,
+                top: `${p.y}%`,
+                width: `${p.size}px`,
+                height: `${p.size}px`,
+                opacity: p.opacity,
+                animation: `float ${p.duration}s ease-in-out infinite ${p.delay}s`,
+              }}
+            />
+          ))}
+        </div>
+
+        <style jsx>{`
+          @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(20px, -20px) scale(1.05); }
+            66% { transform: translate(-15px, 15px) scale(0.95); }
+          }
+        `}</style>
+
+        <div className="relative max-w-6xl mx-auto px-6 py-16">
+          {/* Quick action button - NavBar already has Settings & Account */}
+          <motion.div
             className="flex justify-end mb-6"
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.4 }}
           >
             <SignedIn>
-              <div className="flex items-center gap-3">
-                <Link 
-                  href="/settings" 
-                  className="px-4 py-2 rounded-lg bg-white/10 border border-white/10 hover:bg-white/15 transition-all hover:shadow-lg"
-                >
-                  Settings
-                </Link>
-                <UserButton afterSignOutUrl="/" appearance={{ elements: { avatarBox: 'w-8 h-8' } }} />
-              </div>
+              <Link
+                href="/bulk-scan"
+                className="px-6 py-2.5 rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:shadow-lg transition-all font-semibold"
+              >
+                📊 Bulk Scan
+              </Link>
             </SignedIn>
           </motion.div>
 
@@ -55,7 +120,7 @@ export default function DashboardPage() {
           <SignedIn>
             {user && (
               <motion.div 
-                className="flex items-center gap-4 mb-8 p-6 rounded-2xl bg-white/10 backdrop-blur-lg border border-white/10 shadow-lg"
+                className="flex items-center gap-4 mb-8 p-6 rounded-2xl bg-white/80 backdrop-blur-sm border border-gray-200/50 shadow-lg"
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
@@ -71,38 +136,63 @@ export default function DashboardPage() {
                   />
                 )}
                 <div>
-                  <div className="font-bold text-xl bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
+                  <div className="font-bold text-xl bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                     Welcome back, {user.firstName || user.username || 'User'}!
                   </div>
-                  <div className="text-gray-300 text-sm">{user.emailAddresses?.[0]?.emailAddress}</div>
+                  <div className="text-gray-800 text-sm">{user.emailAddresses?.[0]?.emailAddress}</div>
                 </div>
               </motion.div>
             )}
           </SignedIn>
 
-          {/* Legal Disclaimer */}
-          <div className="mb-6">
-            <DisclaimerBanner variant="compact" />
-          </div>
-
           {/* Header */}
-          <motion.div 
+          <motion.div
             className="text-center mb-12"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
-            <h1 className="text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-600 mb-4">
-              Accessibility Scanner Dashboard
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200/50 backdrop-blur-sm mb-6">
+              <span className="text-xs font-bold bg-gradient-to-r from-blue-700 to-purple-700 bg-clip-text text-transparent uppercase tracking-wide">
+                Dashboard
+              </span>
+            </div>
+            <h1 className="text-4xl sm:text-5xl font-black mb-4">
+              <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+                Accessibility Scanner
+              </span>
             </h1>
-            <p className="text-gray-300 text-lg max-w-2xl mx-auto">
-              Scan your website and get instant insights to improve accessibility.
-            </p>
+            {usageData?.plan === 'free' && (
+              <p className="text-gray-800 text-lg max-w-2xl mx-auto">
+                <span className="inline-block px-4 py-2.5 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 shadow-md">
+                  <span className="font-bold text-white">✨ Pro Plan: $19/month for unlimited scans & advanced features</span>
+                </span>
+                <br className="mt-2" />
+                Full accessibility reports, priority support, and PDF exports.
+              </p>
+            )}
           </motion.div>
+
+          {/* Usage Indicator */}
+          {usageData && (
+            <motion.div
+              className="mb-8"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.25 }}
+            >
+              <UsageIndicator
+                scansUsed={usageData.scansUsed}
+                scansLimit={usageData.scansLimit}
+                plan={usageData.plan}
+                period={usageData.period}
+              />
+            </motion.div>
+          )}
 
           {/* Scan Form */}
           <motion.div 
-            className="mb-10 glass p-6 rounded-2xl shadow-xl bg-white/10 backdrop-blur-lg border border-white/10"
+            className="mb-10 p-6 rounded-2xl bg-white/80 backdrop-blur-sm border border-gray-200/50 shadow-lg"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, delay: 0.3 }}
@@ -137,12 +227,16 @@ export default function DashboardPage() {
                 transition={{ duration: 0.5 }}
               >
                 <motion.div 
-                  className="glass p-6 rounded-2xl bg-white/10 backdrop-blur-lg border border-white/10 shadow-md"
+                  className="p-6 rounded-2xl bg-white/80 backdrop-blur-sm border border-gray-200/50 shadow-lg"
                   whileHover={{ scale: 1.01 }}
                   transition={{ duration: 0.2 }}
                 >
-                  {/* @ts-expect-error - Type casting from Record<string, unknown> */}
-                  <ResultsDisplay results={results} />
+                  <ResultsDisplay 
+                    results={results as any} // eslint-disable-line @typescript-eslint/no-explicit-any
+                    userPlan={usageData?.plan || 'free'}
+                    scanId={(results as { id?: string }).id}
+                    showPdfExport={true}
+                  />
                 </motion.div>
                 
                 {(results as { risk?: { standards: string[]; fines: { usUSD: number; euEUR: { min: number; max: number }; note?: string } } }).risk && (
@@ -156,7 +250,7 @@ export default function DashboardPage() {
                 )}
                 
                 <motion.div 
-                  className="glass p-6 rounded-2xl bg-white/10 backdrop-blur-lg border border-white/10 shadow-md"
+                  className="p-6 rounded-2xl bg-white/80 backdrop-blur-sm border border-gray-200/50 shadow-lg"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.3 }}
@@ -173,7 +267,7 @@ export default function DashboardPage() {
                 >
                   <motion.button
                     onClick={() => setResults(null)}
-                    className="px-8 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-cyan-400 hover:to-blue-500 text-white rounded-xl shadow-lg font-semibold"
+                    className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl shadow-lg font-semibold"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
@@ -202,7 +296,7 @@ export default function DashboardPage() {
                   >
                     🔎
                   </motion.div>
-                  <p className="text-xl text-gray-400">Enter a URL above to start your accessibility analysis.</p>
+                  <p className="text-xl text-gray-800">Enter a URL above to start your accessibility analysis.</p>
                 </motion.div>
               </motion.div>
             )}

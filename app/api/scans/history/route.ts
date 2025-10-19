@@ -11,44 +11,38 @@ export async function GET() {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Get scans from the last 24 hours, limit to 10 most recent
+    const oneDayAgo = new Date();
+    oneDayAgo.setDate(oneDayAgo.getDate() - 1);
+
     const scans = await prisma.scan.findMany({
       where: {
-        userId: userId
+        userId: userId,
+        createdAt: {
+          gte: oneDayAgo // Only scans from the last 24 hours
+        }
       },
       orderBy: {
         createdAt: 'desc'
       },
+      take: 10, // Limit to 10 most recent scans
       select: {
         id: true,
         url: true,
         createdAt: true,
         status: true,
-        results: true
+        issuesFound: true // Use the stored issue count instead of parsing results
       }
     });
 
-    // Transform the data to include issue count
-    const formattedScans = scans.map((scan) => {
-      let issueCount = 0;
-      try {
-        if (scan.results && typeof scan.results === 'string') {
-          const parsed = JSON.parse(scan.results);
-          issueCount = parsed.violations?.length || 0;
-        } else if (scan.results && typeof scan.results === 'object') {
-          issueCount = (scan.results as { violations?: unknown[] }).violations?.length || 0;
-        }
-      } catch {
-        issueCount = 0;
-      }
-      
-      return {
-        id: scan.id,
-        url: scan.url,
-        createdAt: scan.createdAt,
-        status: scan.status,
-        issueCount
-      };
-    });
+    // Return scan data with issue count from database
+    const formattedScans = scans.map((scan) => ({
+      id: scan.id,
+      url: scan.url,
+      createdAt: scan.createdAt,
+      status: scan.status,
+      issueCount: scan.issuesFound
+    }));
 
     return NextResponse.json({ 
       success: true, 

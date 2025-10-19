@@ -1,12 +1,10 @@
 "use client";
 import { useState } from "react";
 import { loadStripe } from "@stripe/stripe-js";
-import { useUser } from "@clerk/nextjs";
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
 export default function StripeCheckout({ plan, amount, onSuccess }: { plan: string; amount: number; onSuccess: () => void }) {
-  const { user } = useUser();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -17,7 +15,7 @@ export default function StripeCheckout({ plan, amount, onSuccess }: { plan: stri
       const res = await fetch("/api/billing/create-checkout-session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan, email: user?.primaryEmailAddress?.emailAddress }),
+        body: JSON.stringify({ plan }), // Email is fetched server-side from authenticated user
       });
       const data = await res.json();
       if (data.error) throw new Error(data.error || "Failed to create checkout session");

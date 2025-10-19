@@ -73,13 +73,13 @@ export default function EmailPreferences() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: index * 0.1 }}
             whileHover={{ scale: 1.02, x: 4 }}
-            className="flex items-center justify-between p-4 bg-white/5 rounded-lg border border-white/10 backdrop-blur-sm"
+            className="flex items-center justify-between p-4 bg-white rounded-lg border border-gray-200"
           >
             <div className="flex items-start gap-3">
               <span className="text-2xl">{item.icon}</span>
               <div>
-                <h3 className="font-medium text-white">{item.title}</h3>
-                <p className="text-sm text-gray-400">{item.description}</p>
+                <h3 className="font-semibold text-gray-900">{item.title}</h3>
+                <p className="text-sm text-gray-800">{item.description}</p>
               </div>
             </div>
             <motion.div
@@ -109,7 +109,7 @@ export default function EmailPreferences() {
             initial={{ opacity: 0, y: -10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
-            className={`p-3 rounded-lg ${message.includes('successfully') ? 'bg-green-500/20 text-green-200' : 'bg-red-500/20 text-red-200'}`}
+            className={`p-3 rounded-lg font-medium ${message.includes('successfully') ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'}`}
           >
             {message.includes('successfully') ? '✅ ' : '❌ '}{message}
           </motion.div>

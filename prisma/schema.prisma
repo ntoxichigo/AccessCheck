@@ -8,75 +8,91 @@ datasource db {
 }
 
 model User {
-  id            String   @id @default(cuid())
-  email         String   @unique
-  createdAt     DateTime @default(now())
-  deletedAt     DateTime?
-  scans         Scan[]
-  subscription  String   @default("free") // free, starter, pro
-  isAdmin       Boolean  @default(false)
-  role          String   @default("user") // user, admin, support, etc.
-  Billing       Billing[]
-  AuditLogs     AuditLog[]
-  Notifications Notification[]
-  Settings      UserSettings?
-  ScanHistories ScanHistory[]
+  id                 String          @id @default(cuid())
+  email              String          @unique
+  createdAt          DateTime        @default(now())
+  subscription       String          @default("free")
+  isAdmin            Boolean         @default(false)
+  deletedAt          DateTime?
+  role               String          @default("user")
+  hadTrial           Boolean         @default(false)
+  trialStarted       DateTime?
+  trialEnds          DateTime?
+  trialScansUsed     Int             @default(0)
+  trialScansLimit    Int             @default(10)
+  freeScansUsed      Int             @default(0)
+  freeScansLimit     Int             @default(5)
+  stripeCustomerId   String?         @unique
+  // API rate limiting fields
+  apiKeysLimit       Int             @default(0)
+  apiRequestsLimit   Int             @default(0)
+  apiRequestsUsed    Int             @default(0)
+  billingCycleStart  DateTime?
+  AuditLogs          AuditLog[]
+  Billing            Billing[]
+  Notifications      Notification[]
+  scans              Scan[]
+  ScanHistories      ScanHistory[]
+  Settings           UserSettings?
+  ApiKeys            ApiKey[]
+  ApiUsageLogs       ApiUsageLog[]
+  ScheduledScans     ScheduledScan[]
 
   @@index([createdAt])
 }
 
 model Scan {
-  id          String   @id @default(cuid())
-  url         String
-  userId      String?
-  user        User?    @relation(fields: [userId], references: [id])
-  createdAt   DateTime @default(now())
-  issuesFound Int
-  results     Json
-  status      String   // pending, completed, failed
-
+  id            String        @id @default(cuid())
+  url           String
+  userId        String?
+  createdAt     DateTime      @default(now())
+  issuesFound   Int
+  results       Json
+  status        String
+  user          User?         @relation(fields: [userId], references: [id])
   ScanHistories ScanHistory[]
+
   @@index([userId])
   @@index([createdAt])
 }
 
 model Billing {
-  id            String   @id @default(cuid())
-  userId        String
-  user          User     @relation(fields: [userId], references: [id])
-  plan          String   // free, starter, pro, enterprise
-  status        String   // active, cancelled, past_due
-  amount        Float
-  currency      String   @default("USD")
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  expiresAt     DateTime?
+  id        String    @id @default(cuid())
+  userId    String
+  plan      String
+  status    String
+  amount    Float
+  currency  String    @default("USD")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  expiresAt DateTime?
+  user      User      @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([createdAt])
 }
 
 model AuditLog {
-  id            String   @id @default(cuid())
-  userId        String?
-  user          User?    @relation(fields: [userId], references: [id])
-  action        String
-  details       Json
-  createdAt     DateTime @default(now())
+  id        String   @id @default(cuid())
+  userId    String?
+  action    String
+  details   Json
+  createdAt DateTime @default(now())
+  user      User?    @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([createdAt])
 }
 
 model Notification {
-  id            String   @id @default(cuid())
-  userId        String?
-  user          User?    @relation(fields: [userId], references: [id])
-  type          String   // scan_result, billing, admin, etc.
-  message       String
-  read          Boolean  @default(false)
-  seen          Boolean  @default(false)
-  createdAt     DateTime @default(now())
+  id        String   @id @default(cuid())
+  userId    String?
+  type      String
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  seen      Boolean  @default(false)
+  user      User?    @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([createdAt])
@@ -85,24 +101,76 @@ model Notification {
 model UserSettings {
   id            String   @id @default(cuid())
   userId        String   @unique
-  user          User     @relation(fields: [userId], references: [id])
   emailPrefs    Boolean  @default(true)
   accessibility Json
-  settings      Json?
   createdAt     DateTime @default(now())
+  settings      Json?
+  user          User     @relation(fields: [userId], references: [id])
 }
 
 model ScanHistory {
-  id          String   @id @default(cuid())
-  scanId      String
-  scan        Scan     @relation(fields: [scanId], references: [id])
-  userId      String?
-  user        User?    @relation(fields: [userId], references: [id])
-  createdAt   DateTime @default(now())
-  results     Json
-  status      String
+  id        String   @id @default(cuid())
+  scanId    String
+  userId    String?
+  createdAt DateTime @default(now())
+  results   Json
+  status    String
+  scan      Scan     @relation(fields: [scanId], references: [id])
+  user      User?    @relation(fields: [userId], references: [id])
 
   @@index([scanId])
   @@index([userId])
+  @@index([createdAt])
+}
+
+model ApiKey {
+  id             String        @id @default(cuid())
+  userId         String
+  name           String
+  key            String        @unique
+  lastUsedAt     DateTime?
+  createdAt      DateTime      @default(now())
+  expiresAt      DateTime?
+  isActive       Boolean       @default(true)
+  requestsUsed   Int           @default(0)
+  user           User          @relation(fields: [userId], references: [id])
+  ApiUsageLogs   ApiUsageLog[]
+
+  @@index([userId])
+  @@index([key])
+  @@index([createdAt])
+}
+
+model ApiUsageLog {
+  id             String   @id @default(cuid())
+  apiKeyId       String
+  userId         String
+  endpoint       String
+  timestamp      DateTime @default(now())
+  responseStatus Int?
+  responseTime   Int?
+  apiKey         ApiKey   @relation(fields: [apiKeyId], references: [id], onDelete: Cascade)
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([apiKeyId])
+  @@index([userId])
+  @@index([timestamp])
+}
+
+model ScheduledScan {
+  id                String    @id @default(cuid())
+  userId            String
+  url               String
+  frequency         String    // daily, weekly, monthly
+  enabled           Boolean   @default(true)
+  alertOnNewIssues  Boolean   @default(true)
+  nextRun           DateTime
+  lastRun           DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  user              User      @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([nextRun])
   @@index([createdAt])
 }

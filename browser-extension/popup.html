@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AccessCheck</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      width: 400px;
+      min-height: 500px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #fff;
+    }
+
+    .header {
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    .logo-icon {
+      font-size: 28px;
+    }
+
+    .tagline {
+      font-size: 12px;
+      margin-top: 5px;
+      opacity: 0.9;
+    }
+
+    .content {
+      padding: 20px;
+    }
+
+    .scan-section {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 12px;
+      padding: 20px;
+      color: #333;
+      margin-bottom: 15px;
+    }
+
+    .url-display {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 15px;
+      padding: 10px;
+      background: #f5f5f5;
+      border-radius: 6px;
+      word-break: break-all;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-secondary {
+      background: #f5f5f5;
+      color: #333;
+      margin-top: 10px;
+    }
+
+    .btn-secondary:hover {
+      background: #e0e0e0;
+    }
+
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .loading.active {
+      display: block;
+    }
+
+    .spinner {
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-top: 3px solid #fff;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 15px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .results {
+      display: none;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 12px;
+      padding: 20px;
+      color: #333;
+    }
+
+    .results.active {
+      display: block;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .stat {
+      text-align: center;
+      padding: 15px;
+      background: #f5f5f5;
+      border-radius: 8px;
+    }
+
+    .stat-value {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: #666;
+      text-transform: uppercase;
+    }
+
+    .violations-list {
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .violation-item {
+      padding: 12px;
+      background: #fff;
+      border-left: 4px solid #dc2626;
+      border-radius: 6px;
+      margin-bottom: 10px;
+      font-size: 13px;
+    }
+
+    .violation-item.serious {
+      border-left-color: #f59e0b;
+    }
+
+    .violation-item.moderate {
+      border-left-color: #fbbf24;
+    }
+
+    .violation-item.minor {
+      border-left-color: #a3e635;
+    }
+
+    .violation-title {
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+
+    .violation-count {
+      font-size: 11px;
+      color: #666;
+    }
+
+    .footer {
+      padding: 15px 20px;
+      text-align: center;
+      font-size: 11px;
+      opacity: 0.8;
+    }
+
+    .footer a {
+      color: #fff;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .error {
+      display: none;
+      background: rgba(220, 38, 38, 0.1);
+      border: 1px solid rgba(220, 38, 38, 0.3);
+      color: #dc2626;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 15px;
+      font-size: 13px;
+    }
+
+    .error.active {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">
+      <span class="logo-icon">♿</span>
+      <span>AccessCheck</span>
+    </div>
+    <div class="tagline">Web Accessibility Checker</div>
+  </div>
+
+  <div class="content">
+    <!-- Scan Section -->
+    <div class="scan-section" id="scanSection">
+      <div class="url-display" id="currentUrl">Loading current page...</div>
+      <button class="btn btn-primary" id="scanBtn">
+        <span>🔍</span>
+        <span>Scan This Page</span>
+      </button>
+      <button class="btn btn-secondary" id="viewDashboardBtn">
+        View Full Dashboard
+      </button>
+    </div>
+
+    <!-- Loading -->
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      <div>Analyzing accessibility...</div>
+    </div>
+
+    <!-- Results -->
+    <div class="results" id="results">
+      <h3 style="margin-bottom: 15px; font-size: 16px;">Scan Results</h3>
+      
+      <div class="summary">
+        <div class="stat">
+          <div class="stat-value" id="totalIssues">0</div>
+          <div class="stat-label">Issues</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value" id="criticalCount">0</div>
+          <div class="stat-label">Critical</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value" id="warningCount">0</div>
+          <div class="stat-label">Warnings</div>
+        </div>
+      </div>
+
+      <div class="violations-list" id="violationsList"></div>
+
+      <button class="btn btn-primary" id="viewFullReportBtn" style="margin-top: 15px;">
+        View Full Report
+      </button>
+      
+      <button class="btn btn-secondary" id="scanAgainBtn">
+        Scan Again
+      </button>
+    </div>
+
+    <!-- Error -->
+    <div class="error" id="error"></div>
+  </div>
+
+  <div class="footer">
+    Powered by <a href="https://your-domain.com" target="_blank">AccessCheck</a>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

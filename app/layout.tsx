@@ -6,6 +6,7 @@ import { QueryProvider } from "@/components/providers/QueryProvider";
 import { FeatureFlagProvider } from "@/lib/feature-flags";
 import { Toaster } from "@/lib/notifications";
 import { Analytics } from "@vercel/analytics/react";
+import { UserSyncProvider } from "@/components/providers/UserSyncProvider";
 
 export const metadata: Metadata = {
   title: "AccessCheck - Website Accessibility Scanner",
@@ -32,6 +33,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <body className="bg-black text-white" suppressHydrationWarning>
           <QueryProvider>
             <FeatureFlagProvider>
+              <UserSyncProvider />
               <a href="#main-content" className="skip-to-content">
                 Skip to main content
               </a>
