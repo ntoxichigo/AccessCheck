@@ -6,6 +6,8 @@ import Link from 'next/link';
 import NavBar from '../components/NavBar';
 import { LegalFooter } from '../components/legal/LegalFooter';
 import { ScanSearch, FileText, Zap, Shield } from 'lucide-react';
+import dynamic from 'next/dynamic';
+
 
 // Optimized intersection observer hook
 const useInView = (options: IntersectionObserverInit = {}) => {
@@ -67,6 +69,7 @@ export default function Home() {
   const [mounted, setMounted] = useState(false);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const heroRef = useRef<HTMLElement>(null);
+
 
   // Parallax mouse tracking
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLElement>) => {
@@ -228,11 +231,13 @@ export default function Home() {
       {/* HERO SECTION */}
       <section 
         id="home" 
-        className="relative py-16 sm:py-20 md:py-24 lg:py-32"
+        className="relative py-16 sm:py-20 md:py-24 lg:py-32 overflow-hidden"
         ref={heroRef}
         onMouseMove={handleMouseMove}
       >
-        <div className="mx-auto max-w-7xl px-4 sm:px-6">
+
+        
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
             <div className="space-y-8">
               <div 
@@ -277,9 +282,12 @@ export default function Home() {
                   <div className="absolute inset-0 shimmer-bg opacity-0 group-hover:opacity-100 transition-opacity" />
                 </Link>
                 
-                <button className="px-8 py-4 rounded-xl border-2 border-gray-300 font-bold text-gray-800 hover:border-purple-500 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 transition-all hover-lift">
-                  Watch Demo
-                </button>
+                <Link
+                  href="/pricing"
+                  className="px-8 py-4 rounded-xl border-2 border-gray-300 font-bold text-gray-800 hover:border-purple-500 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 transition-all hover-lift"
+                >
+                  View Pricing
+                </Link>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-8 border-t border-gray-200" data-animate>

@@ -61,23 +61,47 @@ export async function GET() {
     }
 
     // Create portal session
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    
+    log.info('Creating portal session', {
+      userId,
+      customerId,
+      baseUrl,
+      returnUrl: `${baseUrl}/settings?tab=subscription`,
+    });
+    
     const session = await stripe.billingPortal.sessions.create({
       customer: customerId,
-      return_url: `${process.env.NEXT_PUBLIC_BASE_URL}/dashboard`,
+      return_url: `${baseUrl}/settings?tab=subscription`,
     });
 
     log.info('Customer portal session created', {
       userId,
       customerId,
       sessionId: session.id,
+      returnUrl: `${baseUrl}/settings?tab=subscription`,
+      url: session.url,
     });
 
     // Redirect directly to Stripe portal
     return NextResponse.redirect(session.url);
   } catch (error) {
-    log.error('Portal session error:', { error: error as Error });
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorStack = error instanceof Error ? error.stack : '';
+    
+    log.error('Portal session error:', { 
+      error: error as Error,
+      message: errorMessage,
+      stack: errorStack,
+    });
+    
+    console.error('Full portal error:', error);
+    
     return NextResponse.json(
-      { error: 'Failed to create portal session' },
+      { 
+        error: 'Failed to create portal session',
+        details: errorMessage,
+      },
       { status: 500 }
     );
   }

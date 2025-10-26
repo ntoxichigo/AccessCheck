@@ -56,6 +56,7 @@ export function SimpleSubscriptionManager() {
         const response = await fetch('/api/user/subscription');
         if (response.ok) {
           const data = await response.json();
+          console.log('📊 Subscription data received:', data);
           setSubscription({
             plan: data.subscription || 'free',
             status: data.status || 'active',
@@ -63,6 +64,8 @@ export function SimpleSubscriptionManager() {
             trialEnds: data.trialEnds,
             cancelAtPeriodEnd: data.cancelAtPeriodEnd,
           });
+        } else {
+          console.error('Failed to fetch subscription:', await response.text());
         }
       } catch (error) {
         console.error('Failed to fetch subscription:', error);
@@ -92,8 +95,9 @@ export function SimpleSubscriptionManager() {
       const result = await response.json();
       
       if (!response.ok) {
-        const message = result.error || result.details || 'Failed to cancel subscription';
-        throw new Error(message);
+        // Show the custom message from the API if available
+        const displayMessage = result.message || result.error || result.details || 'Failed to cancel subscription';
+        throw new Error(displayMessage);
       }
 
       notify.success('Subscription canceled', 'Your subscription will remain active until the end of the billing period');
@@ -101,7 +105,8 @@ export function SimpleSubscriptionManager() {
       setShowCancelModal(false);
       setCancelReason('');
     } catch (error) {
-      notify.error('Failed to cancel subscription', error instanceof Error ? error.message : 'Unknown error');
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      notify.error('Cannot cancel', errorMessage);
     } finally {
       setLoading(false);
     }
@@ -135,10 +140,14 @@ export function SimpleSubscriptionManager() {
       if (response.ok) {
         const data = await response.json();
         setInvoices(data.invoices || []);
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Failed to fetch invoices:', errorData);
+        notify.error('Failed to load invoices', errorData.error || 'Unknown error');
       }
     } catch (error) {
       console.error('Failed to fetch invoices:', error);
-      notify.error('Failed to load invoices');
+      notify.error('Failed to load invoices', error instanceof Error ? error.message : 'Network error');
     } finally {
       setLoadingInvoices(false);
     }
@@ -148,6 +157,17 @@ export function SimpleSubscriptionManager() {
     setShowInvoices(true);
     if (invoices.length === 0) {
       fetchInvoices();
+    }
+  };
+
+  const handleManageBilling = async () => {
+    try {
+      setLoading(true);
+      window.location.href = '/api/billing/portal';
+    } catch (error) {
+      console.error('Failed to open billing portal:', error);
+      notify.error('Failed to open billing portal');
+      setLoading(false);
     }
   };
 
@@ -210,23 +230,33 @@ export function SimpleSubscriptionManager() {
                 </span>
               </div>
               
-              {/* Trial End / Next Payment */}
+              {/* Trial End / Next Payment / Subscription End */}
               {(subscription.trialEnds || subscription.currentPeriodEnd) && (
                 <div className="flex items-center gap-2 text-sm">
                   <Calendar className="h-4 w-4 text-gray-600" />
                   <span className="font-medium text-gray-600">
                     {subscription.cancelAtPeriodEnd 
-                      ? 'Ends on:' 
+                      ? 'Access ends:' 
                       : subscription.plan === 'trial' 
                       ? 'Trial ends:' 
-                      : 'Next payment:'}
+                      : 'Next billing:'}
                   </span>
                   <span className="font-semibold text-gray-900">
-                    {new Date(subscription.trialEnds || subscription.currentPeriodEnd!).toLocaleDateString('en-US', { 
-                      month: 'long', 
-                      day: 'numeric', 
-                      year: 'numeric' 
-                    })}
+                    {(() => {
+                      const dateStr = subscription.plan === 'trial' && subscription.trialEnds 
+                        ? subscription.trialEnds 
+                        : subscription.currentPeriodEnd;
+                      
+                      console.log('📅 Date to display:', dateStr, 'Plan:', subscription.plan);
+                      
+                      if (!dateStr) return 'N/A';
+                      
+                      return new Date(dateStr).toLocaleDateString('en-US', { 
+                        month: 'long', 
+                        day: 'numeric', 
+                        year: 'numeric' 
+                      });
+                    })()}
                   </span>
                 </div>
               )}
@@ -238,6 +268,17 @@ export function SimpleSubscriptionManager() {
                   <div className="text-sm text-blue-900">
                     <p className="font-semibold mb-1">Your trial will convert to Pro automatically</p>
                     <p>You&apos;ll be charged $19/month after your trial ends. Cancel anytime before then to avoid charges.</p>
+                  </div>
+                </div>
+              )}
+              
+              {/* Canceled Pro/Enterprise Notice */}
+              {subscription.plan !== 'free' && subscription.plan !== 'trial' && subscription.cancelAtPeriodEnd && (
+                <div className="mt-3 p-4 bg-orange-50 border border-orange-200 rounded-lg flex items-start gap-3">
+                  <AlertCircle className="h-5 w-5 text-orange-600 flex-shrink-0 mt-0.5" />
+                  <div className="text-sm text-orange-900">
+                    <p className="font-semibold mb-1">Subscription Canceled</p>
+                    <p>You&apos;ll keep {subscription.plan === 'pro' ? 'Pro' : 'Enterprise'} access until {subscription.currentPeriodEnd ? new Date(subscription.currentPeriodEnd).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'the end of your billing period'}. After that, you&apos;ll be downgraded to Free.</p>
                   </div>
                 </div>
               )}
@@ -313,11 +354,12 @@ export function SimpleSubscriptionManager() {
           </p>
           <div className="flex gap-3">
             <Button
-              onClick={() => window.location.href = '/api/billing/portal'}
+              onClick={handleManageBilling}
               variant="outline"
               className="font-semibold"
+              disabled={loading}
             >
-              Manage Billing
+              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Manage Billing'}
             </Button>
             <Button
               onClick={handleShowInvoices}

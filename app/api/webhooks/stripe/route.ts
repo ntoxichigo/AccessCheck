@@ -191,21 +191,39 @@ async function handleSubscriptionChange(subscription: Stripe.Subscription) {
   // Check if this is a trial subscription
   const isTrialing = subscription.status === "trialing";
   const trialEnd = subscription.trial_end ? new Date(subscription.trial_end * 1000) : null;
+  
+  // Check if trial just ended (status is active but trial_end exists and is in the past)
+  const trialJustEnded = subscription.status === "active" && 
+                         trialEnd && 
+                         trialEnd.getTime() <= Date.now();
+
+  // IMPORTANT: Only keep plan active if subscription is active, trialing, or past_due
+  // Canceled subscriptions should keep the plan until the period ends (handled by subscription.deleted)
+  const shouldKeepPaidPlan = subscription.status === "active" || 
+                             subscription.status === "trialing" || 
+                             subscription.status === "past_due" ||
+                             subscription.status === "canceled"; // Keep plan if canceled but not deleted
 
   // Update user
   const updateData: {
     subscription: string;
     trialStarted?: Date;
-    trialEnds?: Date;
+    trialEnds?: Date | null;
     hadTrial?: boolean;
   } = {
-    subscription: isTrialing ? "trial" : plan,
+    subscription: shouldKeepPaidPlan ? (isTrialing ? "trial" : plan) : "free",
   };
 
   // If trial is active, set trial dates
   if (isTrialing && trialEnd) {
     updateData.trialStarted = new Date();
     updateData.trialEnds = trialEnd;
+    updateData.hadTrial = true;
+  }
+  
+  // If trial just ended, clear trial dates and ensure hadTrial is true
+  if (trialJustEnded) {
+    updateData.trialEnds = null;
     updateData.hadTrial = true;
   }
 
@@ -237,7 +255,10 @@ async function handleSubscriptionChange(subscription: Stripe.Subscription) {
     userId, 
     plan, 
     status, 
-    isTrialing, 
+    isTrialing,
+    trialJustEnded,
+    shouldKeepPaidPlan,
+    subscriptionStatus: subscription.status,
     trialEnd: trialEnd?.toISOString(),
     updateData 
   });
@@ -277,8 +298,32 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
 
 async function handlePaymentSucceeded(invoice: Stripe.Invoice) {
   const customerId = invoice.customer as string;
+  const subscriptionId = invoice.subscription as string;
 
-  log.info("Payment succeeded", { customerId, amount: invoice.amount_paid });
+  log.info("Payment succeeded", { customerId, subscriptionId, amount: invoice.amount_paid });
+
+  // If this is the first payment after a trial (billing_reason is "subscription_cycle"),
+  // make sure the subscription is updated to the paid plan
+  if (invoice.billing_reason === "subscription_cycle" && subscriptionId) {
+    try {
+      const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+      
+      // Trigger subscription update to ensure database is in sync
+      if (subscription.status === "active") {
+        await handleSubscriptionChange(subscription);
+        log.info("Updated subscription after trial conversion payment", { 
+          customerId, 
+          subscriptionId 
+        });
+      }
+    } catch (error) {
+      log.error("Failed to update subscription after payment", { 
+        error: error instanceof Error ? error : new Error(String(error)),
+        customerId,
+        subscriptionId
+      });
+    }
+  }
 
   // You can send a thank you email here or update billing records
 }

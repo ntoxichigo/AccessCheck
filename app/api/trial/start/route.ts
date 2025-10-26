@@ -50,11 +50,25 @@ export async function POST() {
     }
 
     // Check if user already had a trial
+    // Only block if they had a trial AND it wasn't immediately canceled
     if (dbUser?.hadTrial) {
-      return NextResponse.json(
-        { error: 'You have already used your free trial' },
-        { status: 400 }
-      );
+      // Check if they have a Stripe subscription that shows they used the trial
+      const hasUsedTrial = dbUser.subscription !== 'free' || 
+                           (dbUser.trialEnds && new Date(dbUser.trialEnds) < new Date());
+      
+      if (hasUsedTrial) {
+        return NextResponse.json(
+          { error: 'You have already used your free trial' },
+          { status: 400 }
+        );
+      }
+      // If hadTrial is true but they're still on free and no trial end date, allow retry
+      log.info('Allowing trial retry - previous trial may have been incomplete', {
+        userId: user.id,
+        hadTrial: dbUser.hadTrial,
+        subscription: dbUser.subscription,
+        trialEnds: dbUser.trialEnds,
+      });
     }
 
     // Check if user is already on a paid plan

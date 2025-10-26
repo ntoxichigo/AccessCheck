@@ -7,6 +7,7 @@ import NavBar from "../../components/NavBar";
 import { LegalFooter } from "../../components/legal/LegalFooter";
 import { useOptimizedAnimations } from "../../hooks/useOptimizedAnimations";
 import { CheckCircle2 } from "lucide-react";
+import { ContactModal } from "../../components/ContactModal";
 
 export default function PricingPage() {
   const { user } = useUser();
@@ -15,6 +16,9 @@ export default function PricingPage() {
   const [loadingPro, setLoadingPro] = useState(false);
   const [hadTrial, setHadTrial] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [showContactModal, setShowContactModal] = useState(false);
+  const [contactSubject, setContactSubject] = useState('');
+  const [contactPlan, setContactPlan] = useState('');
 
   // Use optimized animation hook
   const { mounted, mousePos, particles, handleMouseMove } = useOptimizedAnimations({
@@ -312,12 +316,16 @@ export default function PricingPage() {
               </li>
             </ul>
 
-            <a
-              href="/contact?topic=enterprise"
+            <button
+              onClick={() => {
+                setContactSubject('Enterprise Plan Inquiry');
+                setContactPlan('Enterprise Plan');
+                setShowContactModal(true);
+              }}
               className="block w-full py-4 rounded-xl bg-gradient-to-r from-gray-800 to-gray-900 text-white font-bold text-lg text-center hover:from-gray-900 hover:to-black transition-all shadow-lg hover:shadow-xl"
             >
-              � Contact Sales
-            </a>
+              📧 Contact Sales
+            </button>
           </motion.div>
         </motion.div>
 
@@ -443,6 +451,14 @@ export default function PricingPage() {
       </div>
 
       <LegalFooter />
+      
+      {/* Contact Modal */}
+      <ContactModal
+        isOpen={showContactModal}
+        onClose={() => setShowContactModal(false)}
+        defaultSubject={contactSubject}
+        planName={contactPlan}
+      />
     </main>
     </>
   );

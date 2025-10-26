@@ -6,7 +6,8 @@ import { log } from '../../../../lib/logger';
 
 const redis = Redis.fromEnv();
 
-const ADMIN_IDS = ['user_2Nm1234567890']; // Replace with actual admin user IDs
+// Get admin IDs from environment variable (comma-separated)
+const ADMIN_IDS = process.env.ADMIN_USER_IDS?.split(',').map(id => id.trim()).filter(Boolean) || [];
 
 export async function GET() {
   try {

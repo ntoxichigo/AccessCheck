@@ -46,13 +46,16 @@ export async function GET() {
         const subscriptions = await stripe.subscriptions.list({
           customer: dbUser.stripeCustomerId,
           limit: 1,
+          status: 'all', // Include canceled subscriptions
         });
 
         if (subscriptions.data.length > 0) {
           const stripeSub = subscriptions.data[0];
-          cancelAtPeriodEnd = stripeSub.cancel_at_period_end;
-          currentPeriodEnd = stripeSub.current_period_end
-            ? new Date(stripeSub.current_period_end * 1000).toISOString()
+          cancelAtPeriodEnd = stripeSub.cancel_at_period_end || false;
+          // Extract period end from subscription object
+          const subData = stripeSub as unknown as { current_period_end?: number };
+          currentPeriodEnd = subData.current_period_end
+            ? new Date(subData.current_period_end * 1000).toISOString()
             : currentPeriodEnd;
         }
       } catch (stripeError) {
@@ -64,6 +67,17 @@ export async function GET() {
     log.info('Subscription fetched', {
       userId: user.id,
       subscription,
+      cancelAtPeriodEnd,
+      currentPeriodEnd,
+      trialEnds: dbUser.trialEnds?.toISOString(),
+      hasStripeCustomerId: !!dbUser.stripeCustomerId,
+    });
+
+    console.log('📊 API returning subscription data:', {
+      subscription,
+      status: cancelAtPeriodEnd ? 'canceled' : 'active',
+      currentPeriodEnd,
+      trialEnds: dbUser.trialEnds?.toISOString(),
       cancelAtPeriodEnd,
     });
 

@@ -31,18 +31,51 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No Stripe customer found' }, { status: 404 });
     }
 
-    // Get user's current subscription from Stripe (include trialing)
+    // Get user's current subscription from Stripe (include all statuses)
     const subscriptions = await stripe.subscriptions.list({
       customer: user.stripeCustomerId,
       limit: 1,
-      // omit status filter to include 'trialing' subscriptions
+      status: 'all', // Include all subscription statuses
     });
 
     if (!subscriptions.data.length) {
-      return NextResponse.json({ error: 'No subscription found to cancel' }, { status: 404 });
+      return NextResponse.json({ 
+        error: 'No active subscription found',
+        message: 'You don\'t have an active subscription to cancel' 
+      }, { status: 404 });
     }
 
     const subscription = subscriptions.data[0];
+
+    // Check if subscription is already canceled or set to cancel
+    if (subscription.status === 'canceled') {
+      const canceledAt = subscription.canceled_at 
+        ? new Date(subscription.canceled_at * 1000).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+        : 'previously';
+      return NextResponse.json({ 
+        error: 'Subscription already canceled',
+        message: `Your subscription was already canceled ${canceledAt}` 
+      }, { status: 400 });
+    }
+
+    if (subscription.cancel_at_period_end) {
+      const subData = subscription as unknown as { current_period_end?: number };
+      const expiresAt = subData.current_period_end
+        ? new Date(subData.current_period_end * 1000).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+        : 'soon';
+      return NextResponse.json({ 
+        error: 'Subscription already expiring',
+        message: `Your subscription is already set to expire on ${expiresAt}. You can reactivate it anytime before then.` 
+      }, { status: 400 });
+    }
+
+    // Only allow canceling active or trialing subscriptions
+    if (subscription.status !== 'active' && subscription.status !== 'trialing') {
+      return NextResponse.json({ 
+        error: 'Cannot cancel subscription',
+        message: `Your subscription status is "${subscription.status}" and cannot be canceled` 
+      }, { status: 400 });
+    }
 
     // Cancel at period end (not immediately)
     const updatedSubscription = await stripe.subscriptions.update(subscription.id, {
