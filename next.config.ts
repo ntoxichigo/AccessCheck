@@ -7,8 +7,9 @@ const nextConfig: NextConfig = {
     root: __dirname,
   },
   eslint: {
-    // Avoid failing the build on lint errors; surface them in dev instead
+    // Completely disable ESLint during builds - use editor for linting
     ignoreDuringBuilds: true,
+    dirs: [], // Don't run ESLint on any directories during build
   },
   typescript: {
     // Speed up dev by not type-checking during build (use editor for type errors)
