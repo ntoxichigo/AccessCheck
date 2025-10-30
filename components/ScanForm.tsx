@@ -130,8 +130,9 @@ export default function ScanForm({ onScanComplete, onLoadingChange, inputRef }: 
           setShowUpgradeModal(false);
         }
       }
-    } catch {
-      setError('Connection error. Please check your internet and try again.');
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      setError(`Connection error: ${errorMsg}. Please check your internet and try again.`);
     } finally {
       setLoading(false);
       onLoadingChange?.(false);
