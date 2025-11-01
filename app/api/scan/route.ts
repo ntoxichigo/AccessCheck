@@ -142,6 +142,9 @@ export async function POST(req: Request) {
       }
     }
 
+    // Configure Chromium for serverless
+    chromium.setGraphicsMode = false;
+
     const browser = await puppeteer.launch({
       args: chromium.args,
       defaultViewport: chromium.defaultViewport,
