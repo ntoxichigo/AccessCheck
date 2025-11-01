@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { currentUser } from "@clerk/nextjs/server";
 import { prisma } from "../../../lib/db/prisma";
 import puppeteer from "puppeteer-core";
-import chromium from "chrome-aws-lambda";
+import chromium from "@sparticuz/chromium";
 import { AxePuppeteer } from "@axe-core/puppeteer";
 import type { Prisma } from "@prisma/client";
 import { log } from '../../../lib/logger';
@@ -143,9 +143,9 @@ export async function POST(req: Request) {
     }
 
     const browser = await puppeteer.launch({
-      args: chromium.args,
+      args: [...chromium.args, '--disable-gpu', '--no-sandbox', '--disable-setuid-sandbox'],
       defaultViewport: chromium.defaultViewport,
-      executablePath: await chromium.executablePath,
+      executablePath: await chromium.executablePath(),
       headless: chromium.headless,
     });
     
