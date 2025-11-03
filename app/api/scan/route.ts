@@ -4,6 +4,7 @@ import { currentUser } from "@clerk/nextjs/server";
 import { prisma } from "../../../lib/db/prisma";
 import puppeteer from "puppeteer-core";
 import { AxePuppeteer } from "@axe-core/puppeteer";
+import axe from "axe-core";
 import type { Prisma } from "@prisma/client";
 import { log } from '../../../lib/logger';
 import { handleApiError } from '../../../lib/errors';
