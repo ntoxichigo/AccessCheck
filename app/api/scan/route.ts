@@ -147,8 +147,9 @@ export async function POST(req: Request) {
       throw new Error('BROWSERLESS_API_KEY not configured');
     }
 
+    // Try the connect endpoint with proper format
     const browser = await puppeteer.connect({
-      browserWSEndpoint: `wss://chrome.browserless.io?token=${BROWSERLESS_API_KEY}`,
+      browserWSEndpoint: `wss://production-sfo.browserless.io?token=${BROWSERLESS_API_KEY}`,
     });
     
     let page;
