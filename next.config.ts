@@ -30,7 +30,23 @@ const nextConfig: NextConfig = {
   webpack: (config, { isServer }) => {
     if (isServer) {
       config.externals = config.externals || [];
+      // Externalize these packages for server-side, but NOT axe-core
       config.externals.push('@react-email/render');
+      
+      // Ensure axe-core is bundled (not externalized)
+      if (Array.isArray(config.externals)) {
+        config.externals = config.externals.map((external: any) => {
+          if (typeof external === 'function') {
+            return (context: any, request: string, callback: any) => {
+              if (request === 'axe-core' || request.startsWith('axe-core/')) {
+                return callback();
+              }
+              return external(context, request, callback);
+            };
+          }
+          return external;
+        });
+      }
     }
     if (!isServer) {
       // Prevent winston from being bundled on client-side
