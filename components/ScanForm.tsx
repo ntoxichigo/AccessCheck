@@ -326,6 +326,11 @@ export default function ScanForm({ onScanComplete, onLoadingChange, inputRef }: 
                 required
                 disabled={loading}
                 ref={inputRef as React.Ref<HTMLInputElement>}
+                autoComplete="url"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck="false"
+                inputMode="url"
                 className={`input-glow w-full pl-12 pr-4 py-4 rounded-xl border-2 ${
                   error 
                     ? 'border-red-400 bg-red-50/50' 
