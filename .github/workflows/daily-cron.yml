@@ -1,0 +1,21 @@
+name: Daily Cron
+
+on:
+  schedule:
+    - cron: '0 9 * * *' # 09:00 UTC daily
+  workflow_dispatch: {}
+
+jobs:
+  call-cron-endpoint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call production cron endpoint
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          CRON_ENDPOINT: ${{ secrets.CRON_ENDPOINT }} # e.g., https://accesscheck.pro/api/cron/daily
+        run: |
+          if [ -z "$CRON_ENDPOINT" ]; then
+            echo "CRON_ENDPOINT secret is not set" >&2
+            exit 1
+          fi
+          curl -sS -X POST "$CRON_ENDPOINT" -H "authorization: Bearer $CRON_SECRET" -H "cache-control: no-cache" -f
