@@ -17,7 +17,6 @@
     "db:fix-trial": "node --experimental-modules scripts/fixTrialStatus.mjs"
   },
   "dependencies": {
-    "@axe-core/puppeteer": "^4.10.2",
     "@clerk/clerk-react": "^5.53.2",
     "@clerk/nextjs": "^6.33.2",
     "@headlessui/react": "^2.2.9",

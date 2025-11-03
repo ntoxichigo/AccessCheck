@@ -3,13 +3,12 @@ import { cookies } from "next/headers";
 import { currentUser } from "@clerk/nextjs/server";
 import { prisma } from "../../../lib/db/prisma";
 import puppeteer from "puppeteer-core";
-import { AxePuppeteer } from "@axe-core/puppeteer";
-import axe from "axe-core";
 import type { Prisma } from "@prisma/client";
 import { log } from '../../../lib/logger';
 import { handleApiError } from '../../../lib/errors';
 import { Resend } from 'resend';
 import { generateScanCompletionEmail } from '../../../lib/email-templates';
+import * as axeCore from 'axe-core';
 
 function computeRiskFromCounts(counts: Record<string, number>) {
   const weights: Record<string, number> = { critical: 1.0, serious: 0.7, moderate: 0.4, minor: 0.2 };
@@ -171,8 +170,19 @@ export async function POST(req: Request) {
       // Ensure page is fully loaded and ready
       await page.waitForSelector('body', { timeout: 5000 });
       
-      // Run accessibility analysis
-      results = await new AxePuppeteer(page).analyze();
+      // Inject axe-core and run accessibility analysis manually
+      await page.evaluate((axeSource: string) => {
+        // Inject axe-core into the page
+        const script = document.createElement('script');
+        script.textContent = axeSource;
+        document.head.appendChild(script);
+      }, axeCore.source);
+      
+      // Run axe analysis
+      results = await page.evaluate(() => {
+        // @ts-ignore - axe is injected into the page
+        return window.axe.run();
+      });
       
       await browser.close();
     } catch (error) {

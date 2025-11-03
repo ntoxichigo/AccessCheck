@@ -6,6 +6,12 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: __dirname,
   },
+  // Force Next.js to bundle these packages in serverless functions
+  serverComponentsExternalPackages: [],
+  experimental: {
+    // Ensure axe-core and puppeteer dependencies are bundled
+    serverComponentsExternalPackages: [],
+  },
   eslint: {
     // Completely disable ESLint during builds - use editor for linting
     ignoreDuringBuilds: true,
