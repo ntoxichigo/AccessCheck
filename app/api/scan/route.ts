@@ -102,7 +102,7 @@ export async function POST(req: Request) {
         );
       }
     } else if (userTier === "free") {
-      // Free users: 1 scan per day
+      // Free users: 3 scans per day
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       
@@ -113,10 +113,10 @@ export async function POST(req: Request) {
         } 
       });
       
-      if (scansToday >= 1) {
+      if (scansToday >= 3) {
         log.info('Free user daily scan limit reached', { userId, scansToday });
         return NextResponse.json(
-          { success: false, needsUpgrade: true, message: "You've used your daily scan. Upgrade to Pro for 10 scans/day." },
+          { success: false, needsUpgrade: true, message: "You've used your 3 daily scans. Upgrade to Pro for 10 scans/day." },
           { status: 402 }
         );
       }

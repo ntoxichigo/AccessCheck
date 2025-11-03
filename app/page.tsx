@@ -490,7 +490,7 @@ export default function Home() {
                 name: 'Free',
                 price: '$0',
                 period: 'forever',
-                features: ['1 scan/day', 'Basic reports', 'Community support'],
+                features: ['3 scans/day', 'Basic reports', 'Community support', 'Scan history'],
                 cta: 'Start Free',
                 popular: false
               },
