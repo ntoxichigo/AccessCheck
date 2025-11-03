@@ -3,7 +3,6 @@ import { cookies } from "next/headers";
 import { currentUser } from "@clerk/nextjs/server";
 import { prisma } from "../../../lib/db/prisma";
 import puppeteer from "puppeteer-core";
-import chromium from "@sparticuz/chromium";
 import { AxePuppeteer } from "@axe-core/puppeteer";
 import type { Prisma } from "@prisma/client";
 import { log } from '../../../lib/logger';
@@ -142,16 +141,14 @@ export async function POST(req: Request) {
       }
     }
 
-    // Configure Sparticuz Chromium for serverless
-    chromium.setHeadlessMode = true;
-    chromium.setGraphicsMode = false;
+    // Connect to Browserless.io for cloud Chromium
+    const BROWSERLESS_API_KEY = process.env.BROWSERLESS_API_KEY;
+    if (!BROWSERLESS_API_KEY) {
+      throw new Error('BROWSERLESS_API_KEY not configured');
+    }
 
-    const browser = await puppeteer.launch({
-      args: chromium.args,
-      defaultViewport: chromium.defaultViewport,
-      executablePath: await chromium.executablePath(),
-      headless: chromium.headless,
-      ignoreHTTPSErrors: true,
+    const browser = await puppeteer.connect({
+      browserWSEndpoint: `wss://chrome.browserless.io?token=${BROWSERLESS_API_KEY}`,
     });
     
     let page;
