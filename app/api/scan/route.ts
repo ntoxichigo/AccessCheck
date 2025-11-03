@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { currentUser } from "@clerk/nextjs/server";
 import { prisma } from "../../../lib/db/prisma";
 import puppeteer from "puppeteer-core";
+import chromium from "@sparticuz/chromium";
 import { AxePuppeteer } from "@axe-core/puppeteer";
 import type { Prisma } from "@prisma/client";
 import { log } from '../../../lib/logger';
@@ -141,20 +142,16 @@ export async function POST(req: Request) {
       }
     }
 
-    // Use Vercel's built-in Chrome
+    // Configure Sparticuz Chromium for serverless
+    chromium.setHeadlessMode = true;
+    chromium.setGraphicsMode = false;
+
     const browser = await puppeteer.launch({
-      executablePath: process.env.CHROME_EXECUTABLE_PATH || '/usr/bin/google-chrome-stable',
-      headless: true,
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-accelerated-2d-canvas',
-        '--no-first-run',
-        '--no-zygote',
-        '--single-process',
-        '--disable-gpu'
-      ],
+      args: chromium.args,
+      defaultViewport: chromium.defaultViewport,
+      executablePath: await chromium.executablePath(),
+      headless: chromium.headless,
+      ignoreHTTPSErrors: true,
     });
     
     let page;
