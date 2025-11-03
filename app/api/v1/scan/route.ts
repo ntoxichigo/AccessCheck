@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '../../../../lib/db/prisma';
-import { scanWebsite } from '../../../../lib/scanner/axe-scanner';
 import { validateApiKey } from '../../../../lib/auth/validate-api-key';
 import type { Prisma } from '@prisma/client';
+import puppeteer from "puppeteer-core";
+import * as axeCore from 'axe-core';
 
 // POST /api/v1/scan - Create a new scan
 export async function POST(request: NextRequest) {
@@ -82,8 +83,46 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Perform scan
-    const scanResults = await scanWebsite(url);
+    // Perform scan using Browserless.io
+    const BROWSERLESS_API_KEY = process.env.BROWSERLESS_API_KEY;
+    if (!BROWSERLESS_API_KEY) {
+      return NextResponse.json(
+        { error: 'Scanning service temporarily unavailable' },
+        { status: 503 }
+      );
+    }
+
+    const browser = await puppeteer.connect({
+      browserWSEndpoint: `wss://production-sfo.browserless.io?token=${BROWSERLESS_API_KEY}`,
+    });
+    
+    let scanResults;
+    try {
+      const page = await browser.newPage();
+      await page.setViewport({ width: 1920, height: 1080 });
+      await page.goto(url, { waitUntil: "networkidle2", timeout: 60000 });
+      await page.waitForSelector('body', { timeout: 5000 });
+      
+      // Inject axe-core and run analysis
+      await page.evaluate((axeSource: string) => {
+        const script = document.createElement('script');
+        script.textContent = axeSource;
+        document.head.appendChild(script);
+      }, axeCore.source);
+      
+      scanResults = await page.evaluate(() => {
+        // @ts-ignore - axe is injected into the page
+        return window.axe.run();
+      });
+      
+      await browser.close();
+    } catch (error) {
+      await browser.close();
+      return NextResponse.json(
+        { error: 'Failed to scan website. Please check the URL and try again.' },
+        { status: 500 }
+      );
+    }
 
     // Save to database
     const scan = await prisma.scan.create({
@@ -92,7 +131,7 @@ export async function POST(request: NextRequest) {
         userId: user.id,
         results: scanResults as unknown as Prisma.JsonObject,
         status: 'completed',
-        issuesFound: (scanResults as { violations?: unknown[] })?.violations?.length || 0,
+        issuesFound: scanResults?.violations?.length || 0,
       },
     });
 
