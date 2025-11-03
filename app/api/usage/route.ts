@@ -27,11 +27,11 @@ export async function GET() {
 
     // Get usage based on plan
     let scansUsed = 0;
-    let scansLimit = 1; // Default for free: 1 scan per day
+    let scansLimit = 3; // Default for free: 3 scans per day
     let period: 'total' | 'daily' = 'daily';
 
     if (plan === 'free') {
-      // Free users: 1 scan per day
+      // Free users: 3 scans per day
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
@@ -43,7 +43,7 @@ export async function GET() {
           },
         },
       });
-      scansLimit = 1;
+      scansLimit = 3;
       period = 'daily';
     } else if (plan === 'pro' || plan === 'trial') {
       // Pro and Trial users: 10 scans per day
