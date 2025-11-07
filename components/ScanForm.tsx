@@ -131,8 +131,9 @@ export default function ScanForm({ onScanComplete, onLoadingChange, inputRef }: 
         }
       }
     } catch (err) {
+      console.error('Scan error details:', err);
       const errorMsg = err instanceof Error ? err.message : String(err);
-      setError(`Connection error: ${errorMsg}. Please check your internet and try again.`);
+      setError(`Error: ${errorMsg}. Please check your URL and try again.`);
     } finally {
       setLoading(false);
       onLoadingChange?.(false);
@@ -144,7 +145,10 @@ export default function ScanForm({ onScanComplete, onLoadingChange, inputRef }: 
       ref={containerRef}
       className="relative w-full max-w-3xl mx-auto"
       style={{
-        transform: `perspective(1000px) rotateY(${mousePos.x * 2}deg) rotateX(${-mousePos.y * 2}deg)`,
+        // Disable 3D transform on mobile to prevent buggy behavior
+        transform: typeof window !== 'undefined' && window.innerWidth > 768 
+          ? `perspective(1000px) rotateY(${mousePos.x * 2}deg) rotateX(${-mousePos.y * 2}deg)`
+          : 'none',
         transition: 'transform 0.3s ease-out'
       }}
     >
@@ -317,7 +321,7 @@ export default function ScanForm({ onScanComplete, onLoadingChange, inputRef }: 
               
               <input
                 id="website-url"
-                type="url"
+                type="text"
                 placeholder="https://example.com"
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
@@ -326,18 +330,17 @@ export default function ScanForm({ onScanComplete, onLoadingChange, inputRef }: 
                 required
                 disabled={loading}
                 ref={inputRef as React.Ref<HTMLInputElement>}
-                autoComplete="url"
+                autoComplete="off"
                 autoCapitalize="none"
                 autoCorrect="off"
                 spellCheck="false"
-                inputMode="url"
-                className={`input-glow w-full pl-12 pr-4 py-4 rounded-xl border-2 ${
+                className={`w-full pl-12 pr-4 py-4 rounded-xl border-2 ${
                   error 
-                    ? 'border-red-400 bg-red-50/50' 
+                    ? 'border-red-400 bg-red-50' 
                     : focused 
                       ? 'border-blue-400 bg-white' 
-                      : 'border-gray-200 bg-white/70'
-                } backdrop-blur-sm outline-none text-gray-800 font-medium transition-all duration-300 ${
+                      : 'border-gray-200 bg-white'
+                } outline-none text-gray-800 font-medium transition-colors ${
                   loading ? 'opacity-50 cursor-not-allowed' : ''
                 }`}
                 aria-invalid={!!error}

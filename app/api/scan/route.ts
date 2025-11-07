@@ -161,13 +161,16 @@ export async function POST(req: Request) {
       // Set a default viewport
       await page.setViewport({ width: 1920, height: 1080 });
       
-      // Increase timeout and use more lenient wait condition
+      // More lenient page load - don't wait for networkidle, just domcontentloaded
       await page.goto(url, { 
-        waitUntil: "networkidle2",
+        waitUntil: "domcontentloaded",
         timeout: 60000 // 60 seconds
       });
       
-      // Ensure page is fully loaded and ready
+      // Wait a bit for dynamic content
+      await page.waitForTimeout(2000);
+      
+      // Ensure body exists
       await page.waitForSelector('body', { timeout: 5000 });
       
       // Inject axe-core and run accessibility analysis manually
@@ -187,7 +190,24 @@ export async function POST(req: Request) {
       await browser.close();
     } catch (error) {
       await browser.close();
-      throw error;
+      log.error('Browser scan error', { 
+        error: error instanceof Error ? error : new Error(String(error)),
+        url 
+      });
+      
+      // Return more helpful error message
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (errorMessage.includes('timeout') || errorMessage.includes('Navigation timeout')) {
+        return NextResponse.json(
+          { success: false, error: 'Website took too long to load. Please try again or try a different URL.' },
+          { status: 504 }
+        );
+      }
+      
+      return NextResponse.json(
+        { success: false, error: 'Failed to scan website. Please check the URL is accessible and try again.' },
+        { status: 500 }
+      );
     }
 
     // Save full results for all scans
